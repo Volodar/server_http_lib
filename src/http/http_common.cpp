@@ -51,13 +51,13 @@ void Params::set(std::string_view name, std::string_view value) {
 // }
 bool Params::empty() const { return _params.empty(); }
 size_t Params::size() const { return _params.size(); }
-std::string Params::to_string() const {
+std::string Params::to_string(char delimiter) const {
     std::string res;
     size_t index = _params.size();
     for (auto &pair : _params) {
         res += std::string(pair.first) + "=" + std::string(pair.second);
         if (--index > 0)
-            res += "&";
+            res += delimiter;
     }
     return res;
 }

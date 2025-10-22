@@ -27,7 +27,7 @@ class Params {
     void set(std::string_view name, std::string_view value);
     bool empty() const;
     size_t size() const;
-    std::string to_string() const;
+    std::string to_string(char delimiter='&') const;
 
     std::unordered_map<std::string_view, std::string_view>::iterator
     begin() noexcept {
