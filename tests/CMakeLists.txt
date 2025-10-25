@@ -17,6 +17,11 @@ set(SERVER_WEB_LIBS ${CMAKE_SOURCE_DIR}/../src)
 # Bring in http library (and its transitive deps)
 include("${SERVER_WEB_LIBS}/cmake/http.cmake")
 
+# Включаем тестовый хук в реализации LRUCache для сборки тестов
+if (TARGET http)
+  target_compile_definitions(http PRIVATE LRU_TEST_HOOK=1)
+endif()
+
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${SERVER_WEB_LIBS}
@@ -31,6 +36,7 @@ file(GLOB_RECURSE UNIT_SRC
 add_executable(server_unit_tests ${UNIT_SRC})
 target_link_libraries(server_unit_tests PRIVATE http::http)
 set_target_properties(server_unit_tests PROPERTIES CXX_STANDARD 20)
+target_compile_definitions(server_unit_tests PRIVATE LRU_TEST_HOOK=1)
 
 # -------- Integration tests --------
 file(GLOB_RECURSE INTEG_SRC
