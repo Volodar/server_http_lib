@@ -64,4 +64,14 @@ Response Handler404::handle(const http::Request &request) {
     return response;
 }
 
+HealthHandler::HealthHandler(ServerApp &app)
+: RequestHandler(app) {
+}
+
+Response HealthHandler::handle(const http::Request &) {
+    http::Response r(200, "{\"status\":\"ok\"}");
+    r.add_header_content_type(ContentType::Json);
+    return r;
+}
+
 } // namespace http

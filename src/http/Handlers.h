@@ -49,6 +49,13 @@ class Handler404 : public RequestHandler {
     virtual http::Response handle(const http::Request &request) override;
 };
 
+// Common health endpoint handler: returns {"status":"ok"}
+class HealthHandler : public RequestHandler {
+  public:
+    HealthHandler(ServerApp &app);
+    virtual http::Response handle(const http::Request &request) override;
+};
+
 } // namespace http
 
 #endif /* http::RequestHandlers_hpp */
