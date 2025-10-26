@@ -167,6 +167,29 @@ void MysqlWrapper::alter_table_add_column(const std::string &schema,
     this->query(source);
 }
 
+void MysqlWrapper::alter_table_change_column(const std::string &schema,
+                                             const std::string &table,
+                                             const std::string &column,
+                                             const std::string &column_type) {
+    
+    auto result = query_get(build_query(R"(SELECT COLUMN_NAME, COLUMN_TYPE
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = '$0'
+        AND TABLE_NAME = '$1'
+        AND COLUMN_NAME = '$2')", schema, table, column));
+    
+    while (result && result->next()) {
+        if(result->getString(1) == column) {
+            std::string type = result->getString(2);
+            if(type == column_type){
+                return;
+            }
+        }
+    }
+    auto source = build_query("ALTER TABLE $0.$1 MODIFY COLUMN $2 $3", schema, table, column, column_type);
+    this->query(source);
+}
+
 void MysqlWrapper::create_index(const std::string &schema,
                                 const std::string &table,
                                 const std::string &index,

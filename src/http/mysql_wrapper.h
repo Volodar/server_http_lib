@@ -32,6 +32,10 @@ class MysqlWrapper {
                                 const std::string &table,
                                 const std::string &column,
                                 const std::string &column_type);
+    void alter_table_change_column(const std::string &schema,
+                                   const std::string &table,
+                                   const std::string &column,
+                                   const std::string &column_type);
     void create_index(const std::string &schema, const std::string &table,
                       const std::string &index, const std::string &source = "");
 
