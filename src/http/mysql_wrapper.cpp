@@ -6,6 +6,7 @@
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
 #include <thread>
+#include <chrono>
 
 enum class MySqlErrorCode : int {
     // Общие ошибки
@@ -36,7 +37,10 @@ enum class MySqlErrorCode : int {
                                // couldn't be rolled back
 
     // Неизвестная ошибка
-    Unknown = 0
+    Unknown = 0,
+    
+    //User:
+    TimedOut = 2001,
 };
 
 MysqlWrapper::MysqlWrapper() : _driver(nullptr) {}
@@ -85,6 +89,8 @@ void MysqlWrapper::connect(const std::string &host, const std::string &login,
                           << std::endl;
             }
         }
+        // Разбудим возможных ожидающих, если удалось создать соединения
+        _condition.notify_all();
     } catch (const sql::SQLException &e) {
         std::cerr << "SQLException: " << e.what() << std::endl;
         return;
@@ -107,6 +113,8 @@ void MysqlWrapper::reconnect() {
     connect(_host, _user, _password);
     if (!_schema.empty())
         set_schema(_schema);
+    // Разбудим ожидающие потоки, если появились новые соединения
+    _condition.notify_all();
 }
 
 void MysqlWrapper::set_schema(const std::string &schema) {
@@ -228,7 +236,8 @@ void MysqlWrapper::query(const std::string &query) {
         std::cerr << "SQLException: " << e.what() << std::endl;
         std::cerr << "Query: " << query << std::endl;
         if (e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerLost) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone)) {
+            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone) ||
+            e.getErrorCode() == static_cast<int>(MySqlErrorCode::TimedOut)) {
             reconnect();
             this->query(query);
         }
@@ -246,7 +255,8 @@ MysqlWrapper::query_get(const std::string &query) {
         std::cerr << "SQLException: " << e.what() << std::endl;
         std::cerr << "Query: " << query << std::endl;
         if (e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerLost) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone)) {
+            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone) ||
+            e.getErrorCode() == static_cast<int>(MySqlErrorCode::TimedOut)) {
             reconnect();
             return this->query_get(query);
         }
@@ -256,7 +266,11 @@ MysqlWrapper::query_get(const std::string &query) {
 
 std::shared_ptr<sql::Connection> MysqlWrapper::get_connection() {
     std::unique_lock<std::mutex> lock(_mutex);
-    _condition.wait(lock, [this]() { return !_connections.empty(); });
+    // Ждем с таймаутом, чтобы не блокировать поток навсегда
+    if (!_condition.wait_for(lock, std::chrono::seconds(5),
+                             [this]() { return !_connections.empty(); })) {
+        throw sql::SQLException("Timeout waiting for MySQL connection", "", static_cast<int>(MySqlErrorCode::TimedOut));
+    }
     sql::Connection *conn = _connections.back();
     _connections.pop_back();
     return std::shared_ptr<sql::Connection>(
