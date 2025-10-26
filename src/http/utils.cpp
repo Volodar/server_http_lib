@@ -171,7 +171,7 @@ std::vector<std::string> split(const std::string &values, char delimiter) {
         std::string string = values;
         do {
             size_t k = string.find_first_of(delimiter);
-            if (k == -1) {
+            if (k == std::string::npos) {
                 out.push_back(string);
                 break;
             }
