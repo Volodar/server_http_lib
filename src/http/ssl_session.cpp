@@ -36,7 +36,7 @@ void SslSession<SocketType>::process_request(const std::string &header,
             auto sequire = it->second.second;
             if (sequire)
                 response = sequire(request);
-            if (response.code == ResponseNone.code || Response404.code)
+            if (response.code == ResponseNone.code || response.code == Response404.code)
                 response = it->second.first(request);
         } catch (const std::exception &e) {
             std::cerr << e.what() << std::endl;
