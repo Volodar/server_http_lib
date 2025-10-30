@@ -54,7 +54,6 @@ void SslSession<SocketType>::process_request(const std::string &header,
 
     // Determine keep-alive from headers and HTTP version
     auto has_ci = [](const std::string &s, const char *needle) -> bool {
-        const char *p = needle;
         size_t n = std::strlen(needle);
         auto it = std::search(
             s.begin(), s.end(), needle, needle + n,
