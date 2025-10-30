@@ -159,10 +159,12 @@ std::string sha256(const std::string &input) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256(reinterpret_cast<const unsigned char *>(input.c_str()), input.length(), hash);
 
-    std::stringstream ss;
+    std::string output;
+    output.resize(SHA256_DIGEST_LENGTH * 2);
+
     for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
-        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
-    return ss.str();
+        std::snprintf(&output[i * 2], 3, "%02x", hash[i]);
+    return output;
 }
 
 std::vector<std::string> split(const std::string &values, char delimiter) {
