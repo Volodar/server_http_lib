@@ -143,3 +143,11 @@ template <> void SslSession<asio::ip::tcp::socket>::do_write() {
 }
 
 } // namespace http
+
+// Explicit instantiations to make template definitions linkable from other TUs
+template void http::SslSession<asio::ip::tcp::socket>::process_request(
+    const std::string &, const std::string &);
+#if defined(ASIO_HAS_SSL)
+template void http::SslSession<asio::ssl::stream<asio::ip::tcp::socket>>::process_request(
+    const std::string &, const std::string &);
+#endif

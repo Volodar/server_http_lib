@@ -1,3 +1,5 @@
+build/
+build_ci/
 tests/build*
 examples/*/build*
 AGENTS.md

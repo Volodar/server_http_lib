@@ -3,8 +3,8 @@ set -e
 pushd .
 
 cd ../tests
-mkdir -p build
-cd build
+mkdir -p build_ci
+cd build_ci
 
 
 if [[ $OSTYPE == 'darwin'* ]]
