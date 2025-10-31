@@ -22,6 +22,9 @@ endif()
 add_library(websocketpp INTERFACE)
 add_library(websocketpp::websocketpp ALIAS websocketpp)
 
+# Группировка в IDE
+set_target_properties(websocketpp PROPERTIES FOLDER libs)
+
 if(SERVER_WEB_WITH_WEBSOCKETPP)
   target_include_directories(websocketpp INTERFACE
     $<BUILD_INTERFACE:${_WS_LIBS_ROOT}>

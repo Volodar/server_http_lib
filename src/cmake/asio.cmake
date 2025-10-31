@@ -13,6 +13,9 @@ option(ASIO_USE_STANDALONE "Define ASIO_STANDALONE for standalone Asio" ON)
 add_library(asio INTERFACE)
 add_library(asio::asio ALIAS asio)
 
+# Группировка в IDE
+set_target_properties(asio PROPERTIES FOLDER libs)
+
 target_include_directories(asio INTERFACE
   $<BUILD_INTERFACE:${_ASIO_LIBS_ROOT}>
 )

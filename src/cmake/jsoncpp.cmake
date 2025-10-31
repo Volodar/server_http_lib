@@ -15,8 +15,13 @@ set(_JSON_SOURCES
   "${_JSON_SRC_DIR}/json_writer.cpp"
 )
 
+# Отображение исходников как в файловой системе (Xcode/VS)
+source_group(TREE "${_JSON_ROOT}" FILES ${_JSON_SOURCES})
+
 add_library(jsoncpp STATIC ${_JSON_SOURCES})
 add_library(jsoncpp::jsoncpp ALIAS jsoncpp)
+
+set_target_properties(jsoncpp PROPERTIES FOLDER libs)
 
 target_include_directories(jsoncpp PUBLIC
   $<BUILD_INTERFACE:${_JSON_ROOT}>

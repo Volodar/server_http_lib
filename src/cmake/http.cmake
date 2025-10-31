@@ -17,8 +17,13 @@ file(GLOB _HTTP_SOURCES
   "${_HTTP_SRC_DIR}/*.hpp"
 )
 
+# Отображение исходников как в файловой системе (Xcode/VS)
+source_group(TREE "${_HTTP_ROOT}" FILES ${_HTTP_SOURCES})
+
 add_library(http STATIC ${_HTTP_SOURCES})
 add_library(http::http ALIAS http)
+
+set_target_properties(http PROPERTIES FOLDER libs)
 
 target_include_directories(http PUBLIC
   $<BUILD_INTERFACE:${_HTTP_ROOT}>

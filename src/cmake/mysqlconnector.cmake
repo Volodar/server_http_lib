@@ -18,6 +18,9 @@ endif()
 add_library(mysqlconnector INTERFACE)
 add_library(mysqlconnector::mysqlconnector ALIAS mysqlconnector)
 
+# Группировка в IDE
+set_target_properties(mysqlconnector PROPERTIES FOLDER libs)
+
 target_include_directories(mysqlconnector INTERFACE
   $<BUILD_INTERFACE:${_MYSQL_INC_DIR}>
   $<BUILD_INTERFACE:${_MYSQL_JDBC_INC_DIR}>
@@ -61,6 +64,8 @@ endif()
 
 # Link the interface to mysqlcppconn (imported or system-provided)
 if(TARGET mysqlcppconn)
+  # Группировка в IDE
+  set_target_properties(mysqlcppconn PROPERTIES FOLDER libs)
   target_link_libraries(mysqlconnector INTERFACE mysqlcppconn)
 else()
   # Fall back to system resolver if available on the host

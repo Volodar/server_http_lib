@@ -15,8 +15,13 @@ set(_PUGI_SOURCES
   "${_PUGI_SRC_DIR}/pugixml.cpp"
 )
 
+# Отображение исходников как в файловой системе (Xcode/VS)
+source_group(TREE "${_PUGI_ROOT}" FILES ${_PUGI_SOURCES})
+
 add_library(pugixml STATIC ${_PUGI_SOURCES})
 add_library(pugixml::pugixml ALIAS pugixml)
+
+set_target_properties(pugixml PROPERTIES FOLDER libs)
 
 target_include_directories(pugixml PUBLIC
   $<BUILD_INTERFACE:${_PUGI_ROOT}>
