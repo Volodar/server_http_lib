@@ -85,8 +85,7 @@ void MysqlWrapper::connect(const std::string &host, const std::string &login,
                 sql::Connection *conn = _driver->connect(host, login, password);
                 _connections.push_back(conn);
             } catch (sql::SQLException &e) {
-                std::cerr << "Ошибка при создании соединения: " << e.what()
-                          << std::endl;
+                std::cerr << "Error on connection to mysql: " << e.what() << std::endl;
             }
         }
         // Разбудим возможных ожидающих, если удалось создать соединения

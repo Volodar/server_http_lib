@@ -34,9 +34,20 @@ echo '==========================================================================
 echo 'Unit tests:'
 echo '================================================================================'
 ./server_unit_tests
+echo 'Unit tests: Done'
 
 echo ''
 echo '================================================================================'
 echo 'Integration tests:'
 echo '================================================================================'
 ./server_integration_tests
+echo 'Integration tests: Done'
+popd
+
+pushd .
+echo '================================================================================'
+echo 'Build example site in Docker'
+echo '================================================================================'
+cd ..
+DOCKER_BUILDKIT=1 docker build -f examples/site/Dockerfile -t example-site .
+popd

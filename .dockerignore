@@ -1,0 +1,15 @@
+.git
+.gitignore
+.DS_Store
+build
+build-xcode
+**/build
+**/build-*
+cmake-build*
+ci
+tests
+utils
+*.swp
+*.tmp
+*.log
+**/.DS_Store

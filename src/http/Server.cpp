@@ -79,7 +79,7 @@ void Server::run(int count_threads) {
         std::cout << "Run http server with " << count_threads << " threads."
                   << std::endl;
 
-        for (unsigned int i = 0; i < count_threads; ++i) {
+        for (int i = 0; i < count_threads; ++i) {
             _threads.emplace_back([this]() { _io_context.run(); });
         }
     } catch (std::exception &e) {

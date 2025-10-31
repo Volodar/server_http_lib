@@ -29,21 +29,31 @@ target_include_directories(http PUBLIC
   $<BUILD_INTERFACE:${_HTTP_ROOT}>
 )
 
+#[[ Dependencies ]]
+# Allow turning off MySQL at configure time to simplify portable builds (e.g. Docker)
+option(SERVER_WEB_WITH_MYSQL "Enable MySQL Connector/C++ support" ON)
+
 # Bring in dependencies and link them so consumers don't have to
 include("${_HTTP_ROOT}/cmake/asio.cmake")
-include("${_HTTP_ROOT}/cmake/mysqlconnector.cmake")
 include("${_HTTP_ROOT}/cmake/jsoncpp.cmake")
 include("${_HTTP_ROOT}/cmake/pugixml.cmake")
 find_package(OpenSSL REQUIRED)
 
 target_link_libraries(http PUBLIC
   asio::asio
-  mysqlconnector::mysqlconnector
   jsoncpp::jsoncpp
   pugixml::pugixml
   OpenSSL::SSL
   OpenSSL::Crypto
 )
+
+if(SERVER_WEB_WITH_MYSQL)
+  include("${_HTTP_ROOT}/cmake/mysqlconnector.cmake")
+  target_link_libraries(http PUBLIC mysqlconnector::mysqlconnector)
+  target_compile_definitions(http PUBLIC SERVER_WEB_HAVE_MYSQLCONNECTOR=1)
+else()
+  target_compile_definitions(http PUBLIC SERVER_WEB_HAVE_MYSQLCONNECTOR=0)
+endif()
 
 # Define feature macro for conditional compilation in sources
 target_compile_definitions(http PUBLIC SERVER_WEB_HAVE_HTTP=1)
