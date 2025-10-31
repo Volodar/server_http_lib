@@ -43,7 +43,7 @@ Response FileContent::handle(const http::Request &request) {
     }
 }
 
-Redirect::Redirect(ServerApp &app, const std::string &redirect)
+Redirect::Redirect(ServerApp &app, const std::string& redirect)
 : RequestHandler(app)
 , _redirect(redirect) {
     

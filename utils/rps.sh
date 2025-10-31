@@ -1,1 +1,3 @@
-wrk -t16 -c200 -d10s http://localhost:8080
+wrk -t16 -c200 -d5s http://localhost
+
+# 21900 on index

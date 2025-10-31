@@ -16,12 +16,12 @@ struct RequestOptions {
 
 class Client {
 public:
-  static Response get(const std::string &host, int port, const std::string &path,
+  static Response get(const std::string& host, int port, const std::string& path,
                       const RequestOptions &opt = {});
 
-  static Response post(const std::string &host, int port, const std::string &path,
-                       const std::string &content_type,
-                       const std::string &body,
+  static Response post(const std::string& host, int port, const std::string& path,
+                       const std::string& content_type,
+                       const std::string& body,
                        const RequestOptions &opt = {});
 };
 

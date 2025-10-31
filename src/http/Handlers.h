@@ -36,7 +36,7 @@ class FileContent : public RequestHandler {
 
 class Redirect : public RequestHandler {
   public:
-    Redirect(ServerApp &app, const std::string &redirect);
+    Redirect(ServerApp &app, const std::string& redirect);
     virtual http::Response handle(const http::Request &request) override;
 
   private:

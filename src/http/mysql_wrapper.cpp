@@ -54,9 +54,9 @@ MysqlWrapper::~MysqlWrapper() {
     }
 }
 
-bool MysqlWrapper::test_connection(const std::string &host,
-                                   const std::string &login,
-                                   const std::string &password) {
+bool MysqlWrapper::test_connection(const std::string& host,
+                                   const std::string& login,
+                                   const std::string& password) {
     bool result = false;
     try {
         auto driver = get_driver_instance();
@@ -68,8 +68,8 @@ bool MysqlWrapper::test_connection(const std::string &host,
     return result;
 }
 
-void MysqlWrapper::connect(const std::string &host, const std::string &login,
-                           const std::string &password) {
+void MysqlWrapper::connect(const std::string& host, const std::string& login,
+                           const std::string& password) {
     _host = host;
     _user = login;
     _password = password;
@@ -116,7 +116,7 @@ void MysqlWrapper::reconnect() {
     _condition.notify_all();
 }
 
-void MysqlWrapper::set_schema(const std::string &schema) {
+void MysqlWrapper::set_schema(const std::string& schema) {
     try {
         _schema = schema;
         for (auto &connection : _connections)
@@ -128,9 +128,9 @@ void MysqlWrapper::set_schema(const std::string &schema) {
     }
 }
 
-void MysqlWrapper::create_table(const std::string &schema,
-                                const std::string &table,
-                                const std::string &source) {
+void MysqlWrapper::create_table(const std::string& schema,
+                                const std::string& table,
+                                const std::string& source) {
     auto result = query_get("SHOW TABLES FROM " + schema);
     while (result->next()) {
         if (result->getString(1) == table)
@@ -144,10 +144,10 @@ void MysqlWrapper::create_table(const std::string &schema,
     }
 }
 
-void MysqlWrapper::alter_table_add_column(const std::string &schema,
-                                          const std::string &table,
-                                          const std::string &column,
-                                          const std::string &column_type) {
+void MysqlWrapper::alter_table_add_column(const std::string& schema,
+                                          const std::string& table,
+                                          const std::string& column,
+                                          const std::string& column_type) {
     assert(column_type.find("DEFAULT") != std::string::npos);
 
     bool tableExist = false;
@@ -174,10 +174,10 @@ void MysqlWrapper::alter_table_add_column(const std::string &schema,
     this->query(source);
 }
 
-void MysqlWrapper::alter_table_change_column(const std::string &schema,
-                                             const std::string &table,
-                                             const std::string &column,
-                                             const std::string &column_type) {
+void MysqlWrapper::alter_table_change_column(const std::string& schema,
+                                             const std::string& table,
+                                             const std::string& column,
+                                             const std::string& column_type) {
     
     auto result = query_get(build_query(R"(SELECT COLUMN_NAME, COLUMN_TYPE
       FROM INFORMATION_SCHEMA.COLUMNS
@@ -197,10 +197,10 @@ void MysqlWrapper::alter_table_change_column(const std::string &schema,
     this->query(source);
 }
 
-void MysqlWrapper::create_index(const std::string &schema,
-                                const std::string &table,
-                                const std::string &index,
-                                const std::string &source) {
+void MysqlWrapper::create_index(const std::string& schema,
+                                const std::string& table,
+                                const std::string& index,
+                                const std::string& source) {
     bool tableExist = false;
     auto result = query_get("SHOW TABLES FROM " + schema);
     while (result->next() && !tableExist) {
@@ -226,7 +226,7 @@ void MysqlWrapper::create_index(const std::string &schema,
     this->query(query);
 }
 
-void MysqlWrapper::query(const std::string &query) {
+void MysqlWrapper::query(const std::string& query) {
     try {
         auto conn = get_connection();
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
@@ -244,7 +244,7 @@ void MysqlWrapper::query(const std::string &query) {
     }
 }
 std::unique_ptr<sql::ResultSet>
-MysqlWrapper::query_get(const std::string &query) {
+MysqlWrapper::query_get(const std::string& query) {
     try {
         auto conn = get_connection();
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());

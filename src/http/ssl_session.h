@@ -64,7 +64,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
 
   private:
     void do_handshake_or_read();
-    void process_request(const std::string &header, const std::string &body);
+    void process_request(const std::string& header, const std::string& body);
 
     void do_read() {
         auto self = this->shared_from_this();

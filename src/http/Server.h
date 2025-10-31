@@ -29,7 +29,7 @@ class Server {
     Server(asio::io_context &io_context, unsigned short http_port, unsigned short https_port, asio::ssl::context *ssl_context);
     ~Server();
 
-    void add_endpoint(const std::string &path, http::Method http_method,
+    void add_endpoint(const std::string& path, http::Method http_method,
                       Handler handler, Handler sequire_handler = nullptr);
     void add_handler(http::Method http_method, Handler handler);
 

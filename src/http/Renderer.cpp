@@ -18,10 +18,10 @@ Renderer::Renderer(ServerApp &app) {
 
 std::string Renderer::get_template() { return ""; }
 
-void Renderer::add_head(std::string &page) { page += _head; }
-void Renderer::add_menu(std::string &page) { page += _menu; }
-void Renderer::add_footer(std::string &page) { page += _footer; }
-void Renderer::add_body(std::string &page, const std::string &content) {
+void Renderer::add_head(std::string& page) { page += _head; }
+void Renderer::add_menu(std::string& page) { page += _menu; }
+void Renderer::add_footer(std::string& page) { page += _footer; }
+void Renderer::add_body(std::string& page, const std::string& content) {
     page += content;
 }
 void Renderer::set_variables(
@@ -32,7 +32,7 @@ void Renderer::add_variables(
     const std::unordered_map<std::string, std::string> &vars) {
     _vars.insert(vars.begin(), vars.end());
 }
-std::string Renderer::render_template(const std::string &tmplt) {
+std::string Renderer::render_template(const std::string& tmplt) {
     return http::format(tmplt, _vars);
 }
 } // namespace http

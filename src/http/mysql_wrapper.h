@@ -18,29 +18,29 @@ class MysqlWrapper {
   public:
     MysqlWrapper();
     ~MysqlWrapper();
-    static bool test_connection(const std::string &host,
-                                const std::string &login,
-                                const std::string &password);
-    void connect(const std::string &host, const std::string &login,
-                 const std::string &password);
+    static bool test_connection(const std::string& host,
+                                const std::string& login,
+                                const std::string& password);
+    void connect(const std::string& host, const std::string& login,
+                 const std::string& password);
     void reconnect();
-    void set_schema(const std::string &schema);
+    void set_schema(const std::string& schema);
 
-    void create_table(const std::string &schema, const std::string &table,
-                      const std::string &source);
-    void alter_table_add_column(const std::string &schema,
-                                const std::string &table,
-                                const std::string &column,
-                                const std::string &column_type);
-    void alter_table_change_column(const std::string &schema,
-                                   const std::string &table,
-                                   const std::string &column,
-                                   const std::string &column_type);
-    void create_index(const std::string &schema, const std::string &table,
-                      const std::string &index, const std::string &source = "");
+    void create_table(const std::string& schema, const std::string& table,
+                      const std::string& source);
+    void alter_table_add_column(const std::string& schema,
+                                const std::string& table,
+                                const std::string& column,
+                                const std::string& column_type);
+    void alter_table_change_column(const std::string& schema,
+                                   const std::string& table,
+                                   const std::string& column,
+                                   const std::string& column_type);
+    void create_index(const std::string& schema, const std::string& table,
+                      const std::string& index, const std::string& source = "");
 
-    void query(const std::string &query);
-    std::unique_ptr<sql::ResultSet> query_get(const std::string &query);
+    void query(const std::string& query);
+    std::unique_ptr<sql::ResultSet> query_get(const std::string& query);
 
     std::shared_ptr<sql::Connection> get_connection();
 
@@ -62,7 +62,7 @@ class MysqlWrapper {
 template <typename T> std::string to_sql_value(const T &value) {
     return std::to_string(value);
 }
-inline std::string to_sql_value(const std::string &value) {
+inline std::string to_sql_value(const std::string& value) {
     std::string escaped = value;
     // Простейший эскейпинг кавычек
     size_t pos = 0;
@@ -80,7 +80,7 @@ inline std::string to_sql_value(const char *value) {
 }
 
 template <typename... Args>
-std::string build_query(const std::string &template_str, Args &&...args) {
+std::string build_query(const std::string& template_str, Args &&...args) {
     std::string query = template_str;
     std::tuple<Args...> values(std::forward<Args>(args)...);
 

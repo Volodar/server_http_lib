@@ -33,10 +33,10 @@ static void apply_timeouts(SocketLike &sock, const RequestOptions &opt) {
     }
 }
 
-static Response do_request(const std::string &host, int port,
-                           const std::string &path, const std::string &method,
-                           const std::string &content_type,
-                           const std::string &body, const RequestOptions &opt) {
+static Response do_request(const std::string& host, int port,
+                           const std::string& path, const std::string& method,
+                           const std::string& content_type,
+                           const std::string& body, const RequestOptions &opt) {
     Response result{-1, ""};
     try {
         asio::io_service io;
@@ -316,14 +316,14 @@ static Response do_request(const std::string &host, int port,
     return result;
 }
 
-Response Client::get(const std::string &host, int port, const std::string &path,
+Response Client::get(const std::string& host, int port, const std::string& path,
                      const RequestOptions &opt) {
     return do_request(host, port, path, "GET", "", "", opt);
 }
 
-Response Client::post(const std::string &host, int port,
-                      const std::string &path, const std::string &content_type,
-                      const std::string &body, const RequestOptions &opt) {
+Response Client::post(const std::string& host, int port,
+                      const std::string& path, const std::string& content_type,
+                      const std::string& body, const RequestOptions &opt) {
     return do_request(host, port, path, "POST", content_type, body, opt);
 }
 

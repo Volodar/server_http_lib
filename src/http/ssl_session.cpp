@@ -5,8 +5,8 @@
 namespace http {
 
 template <typename SocketType>
-void SslSession<SocketType>::process_request(const std::string &header,
-                                             const std::string &body) {
+void SslSession<SocketType>::process_request(const std::string& header,
+                                             const std::string& body) {
     Request request(header);
     request.set_user_ip(_clientIP);
     request.set_data(body);
@@ -53,7 +53,7 @@ void SslSession<SocketType>::process_request(const std::string &header,
     }
 
     // Determine keep-alive from headers and HTTP version
-    auto has_ci = [](const std::string &s, const char *needle) -> bool {
+    auto has_ci = [](const std::string& s, const char *needle) -> bool {
         size_t n = std::strlen(needle);
         auto it = std::search(
             s.begin(), s.end(), needle, needle + n,
@@ -146,8 +146,8 @@ template <> void SslSession<asio::ip::tcp::socket>::do_write() {
 
 // Explicit instantiations to make template definitions linkable from other TUs
 template void http::SslSession<asio::ip::tcp::socket>::process_request(
-    const std::string &, const std::string &);
+    const std::string& , const std::string& );
 #if defined(ASIO_HAS_SSL)
 template void http::SslSession<asio::ssl::stream<asio::ip::tcp::socket>>::process_request(
-    const std::string &, const std::string &);
+    const std::string& , const std::string& );
 #endif

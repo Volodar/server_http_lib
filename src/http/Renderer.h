@@ -23,16 +23,16 @@ class Renderer {
     set_variables(const std::unordered_map<std::string, std::string> &vars);
     void
     add_variables(const std::unordered_map<std::string, std::string> &vars);
-    std::string render_template(const std::string &tmplt);
+    std::string render_template(const std::string& tmplt);
 
-    void set_head(const std::string &tmplt) { _head = tmplt; }
-    void set_menu(const std::string &tmplt) { _menu = tmplt; }
-    void set_footer(const std::string &tmplt) { _footer = tmplt; }
+    void set_head(const std::string& tmplt) { _head = tmplt; }
+    void set_menu(const std::string& tmplt) { _menu = tmplt; }
+    void set_footer(const std::string& tmplt) { _footer = tmplt; }
 
-    void add_head(std::string &page);
-    void add_menu(std::string &page);
-    void add_footer(std::string &page);
-    void add_body(std::string &page, const std::string &content);
+    void add_head(std::string& page);
+    void add_menu(std::string& page);
+    void add_footer(std::string& page);
+    void add_body(std::string& page, const std::string& content);
 
   private:
     std::string _head;

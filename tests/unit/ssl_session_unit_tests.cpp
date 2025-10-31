@@ -80,7 +80,7 @@ TEST(SslSession_ci_starts_with_CaseInsensitivity_And_Bounds) {
 // header-defined methods (try_parse_and_handle/do_read) in this TU.
 namespace http {
 template <>
-void SslSession<FakeSocket>::process_request(const std::string &, const std::string &) {
+void SslSession<FakeSocket>::process_request(const std::string& , const std::string& ) {
     // no-op for FakeSocket path; not used in assertions in this file
 }
 template <>

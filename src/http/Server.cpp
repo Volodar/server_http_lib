@@ -56,7 +56,7 @@ Server::~Server() {
     }
 }
 
-void Server::add_endpoint(const std::string &path, http::Method http_method,
+void Server::add_endpoint(const std::string& path, http::Method http_method,
                           Handler handler, Handler sequere_handler) {
     EndpointKey key{path, http_method};
     _endpoints.emplace(key, std::make_pair(handler, sequere_handler));

@@ -62,9 +62,9 @@ class Response;
 
 class Request {
   public:
-    Request(const std::string &header);
+    Request(const std::string& header);
 
-    void set_user_ip(const std::string &value);
+    void set_user_ip(const std::string& value);
     void set_path(std::string_view value);
     void set_content_type(std::string_view value);
     void set_data(std::string_view value);
@@ -73,7 +73,7 @@ class Request {
     Method get_method() const;
     std::string_view get_path() const;
     std::string_view get_data() const;
-    const std::string &get_user_ip() const;
+    const std::string& get_user_ip() const;
     const Params &get_params() const;
     const Params &get_post_data_params() const;
     const Params &get_headers() const;
@@ -81,8 +81,8 @@ class Request {
 
     std::string_view get_user_agent() const;
     std::string_view get_content_type() const;
-    std::string_view get_post_data_param(const std::string &name) const;
-    std::string_view get_cookie_value(const std::string &name) const;
+    std::string_view get_post_data_param(const std::string& name) const;
+    std::string_view get_cookie_value(const std::string& name) const;
 
   private:
     void parse_header();
@@ -91,7 +91,7 @@ class Request {
     void parse_cookie_params() const;
 
   private:
-    const std::string &_header;
+    const std::string& _header;
 
     Method _method;
     std::string_view _path;
@@ -107,10 +107,10 @@ class Request {
 class Response {
   public:
     Response();
-    Response(int code, const std::string &body = "");
-    void add_header(const std::string &header);
-    void add_header(const std::string &name, const std::string &value);
-    void add_header_content_type(const std::string &type);
+    Response(int code, const std::string& body = "");
+    void add_header(const std::string& header);
+    void add_header(const std::string& name, const std::string& value);
+    void add_header_content_type(const std::string& type);
 
   public:
     int code;
@@ -127,7 +127,7 @@ extern Response Response404;
 Response request(const Url &url, Method method, const Data &data = {});
 Response request(const Url &url, const Request &request);
 
-Method strToMethod(const std::string &methodStr);
+Method strToMethod(const std::string& methodStr);
 std::string methodToStr(Method method);
 
 } // namespace http

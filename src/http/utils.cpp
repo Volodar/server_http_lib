@@ -64,7 +64,7 @@ Json::Value read_json_from_string(const std::string& string)
     return json;
 }
 
-void replace(std::string &str, const std::string &from, const std::string &to) {
+void replace(std::string& str, const std::string& from, const std::string& to) {
     if (from.empty())
         return;
     size_t start_pos = 0;
@@ -89,12 +89,12 @@ template <> std::string to_string(const long long &value) {
 template <> std::string to_string(const float &value) {
     return std::to_string(value);
 }
-template <> std::string to_string(const std::string &value) { return value; }
+template <> std::string to_string(const std::string& value) { return value; }
 
-std::string format(const std::string &template_str, const std::unordered_map<std::string, std::string> &values) {
+std::string format(const std::string& template_str, const std::unordered_map<std::string, std::string> &values) {
     std::string result = template_str;
     for (auto &&[key, value] : values) {
-        replace(result, "$" + key + "$", to_string(value));
+        replace(result, "$" + key + "$", value);
     }
     return result;
 }
@@ -106,7 +106,7 @@ static inline int hex_val(char ch) {
     return -1;
 }
 
-std::string url_decode(const std::string &input) {
+std::string url_decode(const std::string& input) {
     std::string out;
     out.reserve(input.size());
     size_t i = 0;
@@ -134,7 +134,7 @@ std::string url_decode(const std::string &input) {
     }
     return out;
 }
-std::string url_encode(const std::string &input) {
+std::string url_encode(const std::string& input) {
     std::string out;
     out.reserve(input.size() * 3);
     auto hex_upper = [](unsigned char v) -> char {
@@ -155,7 +155,7 @@ std::string url_encode(const std::string &input) {
     return out;
 }
 
-std::string sha256(const std::string &input) {
+std::string sha256(const std::string& input) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
     SHA256(reinterpret_cast<const unsigned char *>(input.c_str()), input.length(), hash);
 
@@ -167,7 +167,7 @@ std::string sha256(const std::string &input) {
     return output;
 }
 
-std::vector<std::string> split(const std::string &values, char delimiter) {
+std::vector<std::string> split(const std::string& values, char delimiter) {
     std::vector<std::string> out;
     if (!values.empty()) {
         std::string string = values;
@@ -186,7 +186,7 @@ std::vector<std::string> split(const std::string &values, char delimiter) {
     return out;
 }
 
-void strip(std::string &value) {
+void strip(std::string& value) {
     auto start = std::find_if_not(value.begin(), value.end(), [](unsigned char ch) { return std::isspace(ch); });
     value = std::string(start, value.end());
     

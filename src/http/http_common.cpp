@@ -62,7 +62,7 @@ std::string Params::to_string(char delimiter) const {
     return res;
 }
 
-Method strToMethod(const std::string &methodStr) {
+Method strToMethod(const std::string& methodStr) {
     std::string lower = methodStr;
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
     if (lower == "get")
@@ -93,7 +93,7 @@ std::string methodToStr(Method method) {
         return "GET";
 }
 
-Request::Request(const std::string &h) : _header(h) { parse_header(); }
+Request::Request(const std::string& h) : _header(h) { parse_header(); }
 
 void Request::parse_header() {
     std::string_view hdr = _header;
@@ -232,15 +232,15 @@ void Request::parse_cookie_params() const {
     }
 }
 
-std::string_view Request::get_post_data_param(const std::string &name) const {
+std::string_view Request::get_post_data_param(const std::string& name) const {
     return get_post_data_params().get(name);
 }
 
-std::string_view Request::get_cookie_value(const std::string &name) const {
+std::string_view Request::get_cookie_value(const std::string& name) const {
     return get_cookie_params().get(name);
 }
 
-void Request::set_user_ip(const std::string &value) { _user_ip = value; }
+void Request::set_user_ip(const std::string& value) { _user_ip = value; }
 void Request::set_path(std::string_view value) { _path = value; }
 void Request::set_content_type(std::string_view value) {
     _headers.set(CONTENT_TYPE, value);
@@ -256,7 +256,7 @@ std::string_view Request::get_content_type() const {
     return get_headers().get(CONTENT_TYPE);
 }
 std::string_view Request::get_data() const { return _post_data; }
-const std::string &Request::get_user_ip() const { return _user_ip; }
+const std::string& Request::get_user_ip() const { return _user_ip; }
 const Params &Request::get_params() const { return _params; }
 const Params &Request::get_post_data_params() const {
     if (_post_data_params.empty())
@@ -277,17 +277,17 @@ const Params &Request::get_cookie_params() const {
 Response::Response()
 : code(-1) {
 }
-Response::Response(int code, const std::string &body) {
+Response::Response(int code, const std::string& body) {
     this->code = code;
     this->body = body;
 }
-void Response::add_header(const std::string &header) {
+void Response::add_header(const std::string& header) {
     headers.push_back(header);
 }
-void Response::add_header(const std::string &name, const std::string &value) {
+void Response::add_header(const std::string& name, const std::string& value) {
     headers.push_back(name + ": " + value);
 }
-void Response::add_header_content_type(const std::string &type) {
+void Response::add_header_content_type(const std::string& type) {
     add_header(CONTENT_TYPE, type);
 }
 

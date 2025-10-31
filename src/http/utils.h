@@ -69,19 +69,19 @@ std::string get_content_type(const std::string_view &path);
 
 Json::Value read_json_from_string(const std::string& string);
 
-void replace(std::string &str, const std::string &from, const std::string &to);
+void replace(std::string& str, const std::string& from, const std::string& to);
 
 template <typename T> std::string to_string(const T &value);
 
-std::string format(const std::string &template_str,
+std::string format(const std::string& template_str,
                    const std::unordered_map<std::string, std::string> &values);
 
 template <typename... Args>
-std::string format_indexes(const std::string &template_str, Args &&...args) {
+std::string format_indexes(const std::string& template_str, Args &&...args) {
     std::string query = template_str;
     std::tuple<Args...> values(std::forward<Args>(args)...);
 
-    auto replace = [&](int index, const std::string &value) {
+    auto replace = [&](int index, const std::string& value) {
         std::string token = "$" + std::to_string(index);
         size_t pos = 0;
         bool was_replace = false;
@@ -104,9 +104,9 @@ std::string format_indexes(const std::string &template_str, Args &&...args) {
     return query;
 }
 
-std::string url_encode(const std::string &input);
-std::string url_decode(const std::string &input);
-std::string sha256(const std::string &input);
+std::string url_encode(const std::string& input);
+std::string url_decode(const std::string& input);
+std::string sha256(const std::string& input);
 
 template <typename T>
 std::string join(const std::vector<T> &values, const char delimiter = ',') {
@@ -122,8 +122,8 @@ std::string join(const std::vector<T> &values, const char delimiter = ',') {
     return result;
 }
 
-std::vector<std::string> split(const std::string &values, char delimiter);
-void strip(std::string &value);
+std::vector<std::string> split(const std::string& values, char delimiter);
+void strip(std::string& value);
 
 void sv_lstrip(std::string_view &sv);
 void sv_rstrip(std::string_view &sv);

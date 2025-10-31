@@ -36,7 +36,7 @@ class ServerApp {
     std::shared_ptr<Scheduler> get_scheduler() { return _scheduler; };
 
     template <class T, typename... Args>
-    void add_endpoint(const std::string &path, http::Method http_method,
+    void add_endpoint(const std::string& path, http::Method http_method,
                       Args &&...args) {
         auto handler = std::make_shared<T>(*this, std::forward<Args>(args)...);
         _request_handlers.push_back(handler);
