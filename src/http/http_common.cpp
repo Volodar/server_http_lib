@@ -38,7 +38,7 @@ template <> float Params::get(std::string_view name) const {
 std::string_view Params::get(std::string_view name) const {
     auto iter = _params.find(name);
     if (iter != _params.end())
-        return _params.at(name);
+        return iter->second;
     return string_empty;
 }
 void Params::set(std::string_view name, std::string_view value) {
@@ -62,21 +62,27 @@ std::string Params::to_string(char delimiter) const {
     return res;
 }
 
+static inline char ascii_lower(char c) {
+    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c | 0x20) : c;
+}
+static inline bool is_equal_lower(const char* a, size_t a_size, const std::string_view& b_in_lower){
+    if(a_size != b_in_lower.size())
+        return false;
+    for(size_t i=0; i<a_size; ++i){
+        if(ascii_lower(a[i]) != b_in_lower[i])
+            return false;
+    }
+    return true;
+}
 Method strToMethod(const std::string& methodStr) {
-    std::string lower = methodStr;
-    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-    if (lower == "get")
-        return Method::get;
-    else if (lower == "post")
-        return Method::post;
-    else if (lower == "put")
-        return Method::put;
-    else if (lower == "delete")
-        return Method::del;
-    else if (lower == "create")
-        return Method::create;
-    else
-        return Method::get;
+    const char *s = methodStr.c_str();
+    size_t size = methodStr.size();
+    if(is_equal_lower(s, size, "get")) return Method::get;
+    if(is_equal_lower(s, size, "post")) return Method::post;
+    if(is_equal_lower(s, size, "put")) return Method::put;
+    if(is_equal_lower(s, size, "del")) return Method::del;
+    if(is_equal_lower(s, size, "create")) return Method::create;
+    return Method::get;
 }
 std::string methodToStr(Method method) {
     if (method == Method::get)

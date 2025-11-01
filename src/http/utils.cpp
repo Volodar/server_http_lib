@@ -16,13 +16,19 @@
 namespace http {
 
 std::string get_file_content(const std::string_view &path) {
-    std::ifstream file(path.data());
-    if (!file.is_open()) {
+    std::ifstream f(std::string(path), std::ios::in | std::ios::binary);
+    if (!f)
+        return "";
+    f.seekg(0, std::ios::end);
+    std::streampos size = f.tellg();
+    if (size <= 0) {
         return "";
     }
-    std::ostringstream ss;
-    ss << file.rdbuf();
-    return ss.str();
+    std::string data;
+    data.resize(static_cast<size_t>(size));
+    f.seekg(0, std::ios::beg);
+    f.read(data.data(), size);
+    return data;
 }
 
 std::string_view get_file_ext(const std::string_view &path) {
