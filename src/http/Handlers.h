@@ -29,8 +29,8 @@ class RequestHandler {
 };
 
 class FileContent : public RequestHandler {
-  public:
-    FileContent(ServerApp &app);
+public:
+    FileContent(ServerApp &app, Handler auth_handler=nullptr);
     virtual http::Response handle(const http::Request &request) override;
 };
 

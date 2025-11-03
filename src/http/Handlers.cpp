@@ -11,8 +11,9 @@
 
 namespace http {
 
-FileContent::FileContent(ServerApp &app)
+FileContent::FileContent(ServerApp &app, Handler auth_handler)
 : RequestHandler(app) {
+    set_sequire(auth_handler);
 }
 
 Response FileContent::handle(const http::Request &request) {
@@ -32,10 +33,12 @@ Response FileContent::handle(const http::Request &request) {
             response.code = 200;
             response.body = std::move(body);
         }
-
-        response.add_header_content_type(get_content_type(request.get_path()));
-        response.add_header("ETag", etag);
-        response.add_header("Cache-Control", "public, max-age=31536000, immutable");
+        auto content_type = get_content_type(request.get_path());
+        response.add_header_content_type(content_type);
+        if(content_type != ContentType::Html){
+            response.add_header("ETag", etag);
+            response.add_header("Cache-Control", "public, max-age=31536000, immutable");
+        }
 
         return response;
     } catch (...) {
