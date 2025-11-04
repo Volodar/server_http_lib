@@ -128,6 +128,7 @@ void strip(std::string& value);
 void sv_lstrip(std::string_view &sv);
 void sv_rstrip(std::string_view &sv);
 void sv_strip(std::string_view &sv);
+std::vector<std::string_view> sv_split(const std::string_view& values, char delimiter);
 
 } // namespace http
 #endif

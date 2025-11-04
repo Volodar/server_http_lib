@@ -212,5 +212,22 @@ void sv_strip(std::string_view &sv) {
     sv_lstrip(sv);
     sv_rstrip(sv);
 }
-
+std::vector<std::string_view> sv_split(const std::string_view& values, char delimiter){
+    std::vector<std::string_view> out;
+    if (!values.empty()) {
+        std::string_view string = values;
+        do {
+            size_t k = string.find_first_of(delimiter);
+            if (k == std::string::npos) {
+                out.push_back(string);
+                break;
+            }
+            out.push_back(string.substr(0, k));
+            string = string.substr(k + 1);
+            if (string.empty())
+                break;
+        } while (true);
+    }
+    return out;
+}
 } // namespace http

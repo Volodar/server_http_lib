@@ -83,6 +83,8 @@ class Request {
     std::string_view get_content_type() const;
     std::string_view get_post_data_param(const std::string& name) const;
     std::string_view get_cookie_value(const std::string& name) const;
+    
+    std::vector<std::string_view> get_accept_language() const;
 
   private:
     void parse_header();

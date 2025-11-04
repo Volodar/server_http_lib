@@ -7,6 +7,8 @@
 #include <cctype>
 #include <cstring>
 #include <iostream>
+#include <list>
+#include <charconv>
 
 namespace http {
 
@@ -278,6 +280,36 @@ const Params &Request::get_cookie_params() const {
     if (_cookie_params.empty())
         parse_cookie_params();
     return _cookie_params;
+}
+
+std::vector<std::string_view> Request::get_accept_language() const{
+    std::list<std::pair<float, std::string_view>> list;
+    auto lang = get_headers().get("Accept-Language");
+    auto variants = sv_split(lang, ',');
+    for(auto variant : variants){
+        auto parts = sv_split(variant, ';');
+        if(parts.size() == 2){
+            //TODO: change to std::from_chars
+            //Sorry. on xcode from_chars has onlyt to integral types :(
+            auto priority = parts.at(1);
+            while(!std::isdigit(priority[0]))
+                priority.remove_prefix(1);
+            float value = std::stof(std::string(priority));
+            list.push_back({value, parts.at(0)});
+        } else {
+            list.push_back({1, parts.at(0)});
+        }
+    }
+    list.sort([](auto& lhs, auto& rhs){
+        return lhs.first > rhs.first;
+    });
+    
+    std::vector<std::string_view> result;
+    result.reserve(list.size());
+    for(auto iter = list.begin(); iter != list.end(); ++iter){
+        result.push_back(iter->second);
+    }
+    return result;
 }
 
 Response::Response()
