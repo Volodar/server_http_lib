@@ -31,6 +31,22 @@ int Scheduler::get_time_int() const {
 std::chrono::system_clock::time_point Scheduler::get_time() {
     return std::chrono::system_clock::now();
 }
+std::chrono::system_clock::time_point Scheduler::get_midnight() {
+    auto now = std::chrono::system_clock::now();
+
+    std::time_t tt = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm = *std::localtime(&tt);
+
+    local_tm.tm_hour = 0;
+    local_tm.tm_min = 0;
+    local_tm.tm_sec = 0;
+
+    std::time_t midnight_tt = std::mktime(&local_tm);
+    return std::chrono::system_clock::from_time_t(midnight_tt);
+}
+std::chrono::system_clock::time_point Scheduler::get_next_midnight(){
+    return get_midnight() + std::chrono::hours(24);
+}
 
 std::chrono::system_clock::time_point Scheduler::current_week_point() const {
     return this->next_weekly_point(-6);
