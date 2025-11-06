@@ -128,14 +128,21 @@ void MysqlWrapper::set_schema(const std::string& schema) {
     }
 }
 
+bool MysqlWrapper::has_table(const std::string& schema, const std::string& table_name){
+    auto result = query_get("SHOW TABLES FROM " + schema);
+    while (result->next()) {
+        if (result->getString(1) == table_name)
+            return true;
+    }
+    return false;
+}
+
 void MysqlWrapper::create_table(const std::string& schema,
                                 const std::string& table,
                                 const std::string& source) {
-    auto result = query_get("SHOW TABLES FROM " + schema);
-    while (result->next()) {
-        if (result->getString(1) == table)
-            return;
-    }
+    if(has_table(schema, table))
+        return;
+    
     auto queries = http::split(source, ';');
     for (auto &query : queries) {
         http::strip(query);
@@ -150,12 +157,7 @@ void MysqlWrapper::alter_table_add_column(const std::string& schema,
                                           const std::string& column_type) {
     assert(column_type.find("DEFAULT") != std::string::npos);
 
-    bool tableExist = false;
-    auto result = query_get("SHOW TABLES FROM " + schema);
-    while (result->next() && !tableExist) {
-        if (result->getString(1) == table)
-            tableExist = true;
-    }
+    bool tableExist = has_table(schema, table);
     if (!tableExist)
         throw sql::SQLException("table " + schema + "." + table +
                                 "not exist. Cannot add column:" + column);
@@ -164,7 +166,7 @@ void MysqlWrapper::alter_table_add_column(const std::string& schema,
         "SELECT COUNT(*) AS cnt FROM information_schema.COLUMNS WHERE "
         "TABLE_SCHEMA = '$0' AND TABLE_NAME = '$1' AND COLUMN_NAME = '$2'",
         schema, table, column);
-    result = query_get(query);
+    auto result = query_get(query);
     while (result->next()) {
         if (result->getInt(1) > 0)
             return;
@@ -201,18 +203,13 @@ void MysqlWrapper::create_index(const std::string& schema,
                                 const std::string& table,
                                 const std::string& index,
                                 const std::string& source) {
-    bool tableExist = false;
-    auto result = query_get("SHOW TABLES FROM " + schema);
-    while (result->next() && !tableExist) {
-        if (result->getString(1) == table)
-            tableExist = true;
-    }
+    bool tableExist = has_table(schema, table);
     if (!tableExist)
         throw sql::SQLException(
             "table " + schema + "." + table +
             "not exist. Cannot create index with query: " + source);
     auto query = build_query("SHOW INDEX FROM `$1` FROM `$0`", schema, table);
-    result = query_get(query);
+    auto result = query_get(query);
     while (result->next()) {
         auto s = result->getString(5);
         if (s == index)
@@ -226,21 +223,21 @@ void MysqlWrapper::create_index(const std::string& schema,
     this->query(query);
 }
 
-void MysqlWrapper::query(const std::string& query) {
+bool MysqlWrapper::query(const std::string& query) {
     try {
         auto conn = get_connection();
         std::unique_ptr<sql::Statement> stmt(conn->createStatement());
         stmt->execute(query);
+        return true;
     } catch (const sql::SQLException &e) {
-        std::cerr << "SQLException: " << e.what() << std::endl;
-        std::cerr << "Query: " << query << std::endl;
+        std::cerr << "SQLException: " << e.what() << std::endl << "Query: " << query << std::endl;
         if (e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerLost) ||
             e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone) ||
             e.getErrorCode() == static_cast<int>(MySqlErrorCode::TimedOut)) {
             reconnect();
             this->query(query);
         }
-        return;
+        return false;
     }
 }
 std::unique_ptr<sql::ResultSet>

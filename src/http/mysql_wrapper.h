@@ -25,7 +25,8 @@ class MysqlWrapper {
                  const std::string& password);
     void reconnect();
     void set_schema(const std::string& schema);
-
+    
+    bool has_table(const std::string& schema, const std::string& table_name);
     void create_table(const std::string& schema, const std::string& table,
                       const std::string& source);
     void alter_table_add_column(const std::string& schema,
@@ -39,7 +40,7 @@ class MysqlWrapper {
     void create_index(const std::string& schema, const std::string& table,
                       const std::string& index, const std::string& source = "");
 
-    void query(const std::string& query);
+    bool query(const std::string& query);
     std::unique_ptr<sql::ResultSet> query_get(const std::string& query);
 
     std::shared_ptr<sql::Connection> get_connection();
