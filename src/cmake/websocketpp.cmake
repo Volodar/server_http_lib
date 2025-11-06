@@ -23,7 +23,10 @@ add_library(websocketpp INTERFACE)
 add_library(websocketpp::websocketpp ALIAS websocketpp)
 
 # Группировка в IDE
-set_target_properties(websocketpp PROPERTIES FOLDER libs)
+get_target_property(_websocketpp_target_type websocketpp TYPE)
+if(_websocketpp_target_type AND NOT _websocketpp_target_type STREQUAL "INTERFACE_LIBRARY")
+  set_target_properties(websocketpp PROPERTIES FOLDER libs)
+endif()
 
 if(SERVER_WEB_WITH_WEBSOCKETPP)
   target_include_directories(websocketpp INTERFACE
@@ -42,3 +45,4 @@ target_compile_definitions(websocketpp INTERFACE
 #   target_link_libraries(my_target PRIVATE websocketpp::websocketpp)
 
 unset(_WS_LIBS_ROOT)
+unset(_websocketpp_target_type)

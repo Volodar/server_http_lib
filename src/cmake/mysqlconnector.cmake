@@ -6,7 +6,11 @@ endif()
 
 add_library(mysqlconnector INTERFACE)
 add_library(mysqlconnector::mysqlconnector ALIAS mysqlconnector)
-set_target_properties(mysqlconnector PROPERTIES FOLDER libs)
+
+get_target_property(_mysqlconnector_target_type mysqlconnector TYPE)
+if(_mysqlconnector_target_type AND NOT _mysqlconnector_target_type STREQUAL "INTERFACE_LIBRARY")
+  set_target_properties(mysqlconnector PROPERTIES FOLDER libs)
+endif()
 
 #
 # Предпочитаем системные заголовки/библиотеки (Ubuntu, Linux)
@@ -80,3 +84,5 @@ endif()
 
 # Фича-макрос для условной компиляции
 target_compile_definitions(mysqlconnector INTERFACE SERVER_WEB_HAVE_MYSQLCONNECTOR=1)
+
+unset(_mysqlconnector_target_type)

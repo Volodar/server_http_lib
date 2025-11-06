@@ -14,7 +14,10 @@ add_library(asio INTERFACE)
 add_library(asio::asio ALIAS asio)
 
 # Группировка в IDE
-set_target_properties(asio PROPERTIES FOLDER libs)
+get_target_property(_asio_target_type asio TYPE)
+if(_asio_target_type AND NOT _asio_target_type STREQUAL "INTERFACE_LIBRARY")
+  set_target_properties(asio PROPERTIES FOLDER libs)
+endif()
 
 target_include_directories(asio INTERFACE
   $<BUILD_INTERFACE:${_ASIO_LIBS_ROOT}>
@@ -28,3 +31,4 @@ endif()
 target_compile_definitions(asio INTERFACE SERVER_WEB_HAVE_ASIO=1)
 
 unset(_ASIO_LIBS_ROOT)
+unset(_asio_target_type)
