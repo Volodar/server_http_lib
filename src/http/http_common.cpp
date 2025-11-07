@@ -26,16 +26,16 @@ bool Params::has(std::string_view name) const {
 }
 template <> std::string Params::get(std::string_view name) const = delete;
 template <> int Params::get(std::string_view name) const {
-    return std::atoi(get(name).data());
+    return std::stoi(std::string(get(name)));
 }
 template <> long Params::get(std::string_view name) const {
-    return std::atol(get(name).data());
+    return std::stol(std::string(get(name)));
 }
 template <> long long Params::get(std::string_view name) const {
-    return std::atoll(get(name).data());
+    return std::stoll(std::string(get(name)));
 }
 template <> float Params::get(std::string_view name) const {
-    return std::atof(get(name).data());
+    return std::stof(std::string(get(name)));
 }
 std::string_view Params::get(std::string_view name) const {
     auto iter = _params.find(name);
@@ -101,7 +101,14 @@ std::string methodToStr(Method method) {
         return "GET";
 }
 
-Request::Request(const std::string& h) : _header(h) { parse_header(); }
+Data::Data(){
+    std::cout << "Data::Data";
+}
+
+Request::Request(std::string&& h)
+: _header(std::move(h)) {
+    parse_header();
+}
 
 void Request::parse_header() {
     std::string_view hdr = _header;
@@ -253,7 +260,9 @@ void Request::set_path(std::string_view value) { _path = value; }
 void Request::set_content_type(std::string_view value) {
     _headers.set(CONTENT_TYPE, value);
 }
-void Request::set_data(std::string_view value) { _post_data = value; }
+void Request::set_data(std::string&& value) {
+    _post_data = std::move(value);
+}
 void Request::set_method(Method method) { this->_method = method; }
 Method Request::get_method() const { return _method; }
 std::string_view Request::get_path() const { return _path; }
@@ -330,10 +339,11 @@ void Response::add_header_content_type(const std::string& type) {
 }
 
 Response request(const Url &url, http::Method method, const Data &data) {
-    Request r("");
+    std::string header_empty;
+    Request r(std::move(header_empty));
     r.set_method(method);
     r.set_content_type(data.content_type);
-    r.set_data(data.data);
+    r.set_data(std::move(std::string(data.data)));
     return request(url, r);
 }
 

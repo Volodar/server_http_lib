@@ -5,11 +5,11 @@
 namespace http {
 
 template <typename SocketType>
-void SslSession<SocketType>::process_request(const std::string& header,
-                                             const std::string& body) {
-    Request request(header);
+void SslSession<SocketType>::process_request(std::string&& header_,
+                                             std::string&& body_) {
+    Request request(std::move(header_));
     request.set_user_ip(_clientIP);
-    request.set_data(body);
+    request.set_data(std::move(body_));
 
     if (false) {
         auto time = Scheduler::time_point_to_string(Scheduler::get_time());
@@ -22,8 +22,8 @@ void SslSession<SocketType>::process_request(const std::string& header,
             for (auto pair : request.get_params())
                 std::clog << pair.first << "=" << pair.second << ", ";
         }
-        if (!body.empty())
-            std::clog << "-> " << body;
+        if (!request.get_data().empty())
+            std::clog << "-> " << request.get_data();
         std::clog << std::endl;
     }
 
@@ -60,6 +60,8 @@ void SslSession<SocketType>::process_request(const std::string& header,
             [](char a, char b) { return std::tolower(a) == std::tolower(b); });
         return it != s.end();
     };
+    
+    const std::string& header = request.get_source_header_string();
     bool http11 = header.find("HTTP/1.1") != std::string::npos;
     bool conn_close = has_ci(header, "Connection: close");
     bool conn_keep = has_ci(header, "Connection: keep-alive");
@@ -146,8 +148,8 @@ template <> void SslSession<asio::ip::tcp::socket>::do_write() {
 
 // Explicit instantiations to make template definitions linkable from other TUs
 template void http::SslSession<asio::ip::tcp::socket>::process_request(
-    const std::string& , const std::string& );
+    std::string&& , std::string&& );
 #if defined(ASIO_HAS_SSL)
 template void http::SslSession<asio::ssl::stream<asio::ip::tcp::socket>>::process_request(
-    const std::string& , const std::string& );
+    std::string&& , std::string&& );
 #endif

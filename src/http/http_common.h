@@ -52,6 +52,7 @@ class Params {
 
 class Data {
   public:
+    Data();
     const std::string_view content_type;
     const std::string_view data;
 
@@ -62,12 +63,19 @@ class Response;
 
 class Request {
   public:
-    Request(const std::string& header);
+    Request(const std::string& header) = delete;
+    Request(const char* header) = delete;
+    Request(const Request&) = delete;
+    const Request& operator=(const Request&) = delete;
+    
+    explicit Request(std::string&& header);
+    
+    const std::string& get_source_header_string() const { return _header; }
 
     void set_user_ip(const std::string& value);
     void set_path(std::string_view value);
     void set_content_type(std::string_view value);
-    void set_data(std::string_view value);
+    void set_data(std::string&& value);
     void set_method(Method method);
 
     Method get_method() const;
@@ -93,7 +101,7 @@ class Request {
     void parse_cookie_params() const;
 
   private:
-    const std::string& _header;
+    std::string _header;
 
     Method _method;
     std::string_view _path;
@@ -101,7 +109,7 @@ class Request {
     mutable Params _headers;
     mutable Params _post_data_params;
     mutable Params _cookie_params;
-    std::string_view _post_data;
+    std::string _post_data;
     std::string _user_ip;
     size_t _headers_pos = -1;
 };

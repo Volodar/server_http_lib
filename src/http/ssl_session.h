@@ -64,7 +64,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
 
   private:
     void do_handshake_or_read();
-    void process_request(const std::string& header, const std::string& body);
+    void process_request(std::string&& header, std::string&& body);
 
     void do_read() {
         auto self = this->shared_from_this();
@@ -221,7 +221,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
         _content_length = 0;
         _expect_continue = false;
 
-        process_request(header_str, body_str);
+        process_request(std::move(header_str), std::move(body_str));
         return true;
     }
 
