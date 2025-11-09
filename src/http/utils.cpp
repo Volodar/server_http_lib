@@ -9,7 +9,7 @@
 #include "utils.h"
 #include <fstream>
 #include <iomanip>
-#include <iostream>
+
 #include <openssl/sha.h>
 #include <sstream>
 

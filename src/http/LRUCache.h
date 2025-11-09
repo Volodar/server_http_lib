@@ -88,7 +88,6 @@ private:
 Usage example:
 
 #include "LRUCache.h"
-#include <iostream>
 using util::LRUCache;
 
 int main() {

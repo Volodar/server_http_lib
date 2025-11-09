@@ -1,6 +1,7 @@
 #include "ssl_session.h"
 #include "http.h"
 #include <charconv>
+#include "Log.h"
 
 namespace http {
 
@@ -10,22 +11,6 @@ void SslSession<SocketType>::process_request(std::string&& header_,
     Request request(std::move(header_));
     request.set_user_ip(_clientIP);
     request.set_data(std::move(body_));
-
-    if (false) {
-        auto time = Scheduler::time_point_to_string(Scheduler::get_time());
-        std::clog << time << ": " << _clientIP << "["
-                  << request.get_user_agent()
-                  << "]: " << methodToStr(request.get_method()) << " "
-                  << request.get_path() << ". ";
-        if (!request.get_params().empty()) {
-            std::clog << "params: ";
-            for (auto pair : request.get_params())
-                std::clog << pair.first << "=" << pair.second << ", ";
-        }
-        if (!request.get_data().empty())
-            std::clog << "-> " << request.get_data();
-        std::clog << std::endl;
-    }
 
     EndpointKey key{std::string(request.get_path()), request.get_method()};
     Response response = Response404;
@@ -39,7 +24,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             if (response.code == ResponseNone.code || response.code == Response404.code)
                 response = it->second.first(request);
         } catch (const std::exception &e) {
-            std::cerr << e.what() << std::endl;
+            log_error << e.what();
         }
     } else {
         auto ith = _handlers->find(request.get_method());
@@ -47,7 +32,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             try {
                 response = ith->second(request);
             } catch (const std::exception &e) {
-                std::cerr << e.what() << std::endl;
+                log_error << e.what();
             }
         }
     }

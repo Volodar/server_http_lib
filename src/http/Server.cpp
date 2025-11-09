@@ -4,7 +4,7 @@
 #include "utils.h"
 #include <array>
 #include <charconv>
-#include <iostream>
+#include "Log.h"
 
 namespace http {
 
@@ -22,8 +22,8 @@ void SslSession<
                                 if (!ec) {
                                     do_read();
                                 } else {
-                                    std::cerr << "SSL handshake error: "
-                                              << ec.message() << std::endl;
+                                    log_error << "SSL handshake error: "
+                                              << ec.message();
                                 }
                             });
 }
@@ -76,14 +76,13 @@ void Server::run(int count_threads) {
         if (_https_acceptor)
             accept_https();
 
-        std::cout << "Run http server with " << count_threads << " threads."
-                  << std::endl;
+        log_info << "Run http server with " << count_threads << " threads.";
 
         for (int i = 0; i < count_threads; ++i) {
             _threads.emplace_back([this]() { _io_context.run(); });
         }
     } catch (std::exception &e) {
-        std::cerr << "Exception: on run server" << e.what() << std::endl;
+        log_error << "Exception: on run server" << e.what();
     }
 }
 

@@ -44,6 +44,7 @@ class Scheduler {
 
 std::string timestamp_to_date(time_t time);
 std::string timestamp_to_time(time_t time);
+std::string timestamp_to_datetime(time_t time);
 
 } // namespace http
 #endif /* Scheduler_hpp */

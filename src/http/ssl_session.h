@@ -12,10 +12,10 @@
 #include "http_common.h"
 #include <chrono>
 #include <cstring>
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
+#include "Log.h"
 
 namespace http {
 
@@ -50,8 +50,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
             auto remote = _socket.lowest_layer().remote_endpoint();
             _clientIP = remote.address().to_string();
         } catch (const std::exception &e) {
-            std::cerr << "Exception on create session: " << e.what()
-                      << std::endl;
+            log_error << "Exception on create session: " << e.what();
         }
         // Pre-reserve buffers to reduce reallocations
         _http_header.reserve(512);
@@ -87,8 +86,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
                         ec == connection_aborted) {
                         return; // normal closure
                     }
-                    std::cerr << "Http read error: " << ec.message()
-                              << std::endl;
+                    log_error << "Http read error: " << ec.message();
                     return;
                 }
                 cancel_keep_alive_timeout();

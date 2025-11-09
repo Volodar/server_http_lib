@@ -153,5 +153,11 @@ std::string timestamp_to_time(time_t time) {
     oss << std::put_time(&tm, "%H:%M:%S");
     return oss.str();
 }
+std::string timestamp_to_datetime(time_t time) {
+    std::tm tm = *std::localtime(&time);
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y/%m/%d %H:%M:%S");
+    return oss.str();
+}
 
 } // namespace http

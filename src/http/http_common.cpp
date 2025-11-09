@@ -6,9 +6,9 @@
 #include <asio.hpp>
 #include <cctype>
 #include <cstring>
-#include <iostream>
 #include <list>
 #include <charconv>
+#include "Log.h"
 
 namespace http {
 
@@ -634,7 +634,7 @@ Response request(const Url &url, const Request &request) {
             }
         }
     } catch (std::exception &e) {
-        std::cerr << "Error: " << e.what() << " URL: " << url.host << ":"
+        log_error << "Error: " << e.what() << " URL: " << url.host << ":"
                   << url.port << url.endpoint << "<<"
                   << std::string(request.get_data()) << "\n";
     }

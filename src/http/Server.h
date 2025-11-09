@@ -14,7 +14,6 @@
 #include "http_common.h"
 #include "ssl_session.h"
 #include <functional>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <thread>

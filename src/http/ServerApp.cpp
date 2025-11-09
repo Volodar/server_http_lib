@@ -6,6 +6,7 @@
 //
 
 #include "ServerApp.h"
+#include "Log.h"
 
 namespace http {
 
@@ -42,9 +43,8 @@ void ServerApp::connect_mysql() {
     if (mysql_host && mysql_user && mysql_password) {
         while (!MysqlWrapper::test_connection(mysql_host, mysql_user,
                                               mysql_password)) {
-            std::cout << "Mysql data base connection not ready. wait 1 seconds "
-                         "and repeat..."
-                      << std::endl;
+            log_error << "Mysql data base connection not ready. wait 1 seconds "
+                         "and repeat...";
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
@@ -52,7 +52,7 @@ void ServerApp::connect_mysql() {
         if (mysql_database != nullptr)
             _mysql->set_schema(mysql_database);
     } else {
-        std::cout << "Skip connect tp MySql: env is empty" << std::endl;
+        log_info << "Skip connect tp MySql: env is empty";
     }
 #endif
 }
