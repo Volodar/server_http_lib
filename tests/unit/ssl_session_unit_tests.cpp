@@ -80,7 +80,7 @@ TEST(SslSession_ci_starts_with_CaseInsensitivity_And_Bounds) {
 // header-defined methods (try_parse_and_handle/do_read) in this TU.
 namespace http {
 template <>
-void SslSession<FakeSocket>::process_request(const std::string& , const std::string& ) {
+void SslSession<FakeSocket>::process_request(std::string&& , std::string&& ) {
     // no-op for FakeSocket path; not used in assertions in this file
 }
 template <>
@@ -191,7 +191,8 @@ TEST(SslSession_process_request_Routes_KeepAlive_And_Fallbacks) {
 
     // 1) Endpoint hit, HTTP/1.1 -> keep-alive
     std::string hdr1 = "GET /x HTTP/1.1\r\nHost: h\r\n\r\n";
-    s->process_request(hdr1, "");
+    std::string body1;
+    s->process_request(std::move(hdr1), std::move(body1));
     ASSERT_TRUE(main_called);
     ASSERT_TRUE(sequire_called);
     ASSERT_TRUE(s->_keep_alive);
@@ -202,15 +203,16 @@ TEST(SslSession_process_request_Routes_KeepAlive_And_Fallbacks) {
     ASSERT_EQ(s->_http_body, std::string("Hello"));
 
     // 2) Header forces close
-    std::string hdr2 =
-        "GET /x HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n";
-    s->process_request(hdr2, "");
+    std::string hdr2 = "GET /x HTTP/1.1\r\nHost: h\r\nConnection: close\r\n\r\n";
+    std::string body2;
+    s->process_request(std::move(hdr2), std::move(body2));
     ASSERT_FALSE(s->_keep_alive);
     ASSERT_NE(s->_http_header.find("Connection: close\r\n\r\n"), std::string::npos);
 
     // 3) No endpoint, fallback method handler, HTTP/1.0 -> close by default
     std::string hdr3 = "GET /nope HTTP/1.0\r\nHost: h\r\n\r\n";
-    s->process_request(hdr3, "");
+    std::string body3;
+    s->process_request(std::move(hdr3), std::move(body3));
     ASSERT_NE(s->_http_header.find("HTTP/1.1 201 OK\r\n"), std::string::npos);
     ASSERT_FALSE(s->_keep_alive);
 }
@@ -230,7 +232,8 @@ TEST(SslSession_process_request_SequireBlocksWith403) {
 
     auto s = make_tcp_session(io, endpoints, handlers);
     std::string hdr = "GET /secure HTTP/1.1\r\nHost: h\r\n\r\n";
-    s->process_request(hdr, "");
+    std::string body;
+    s->process_request(std::move(hdr), std::move(body));
     ASSERT_FALSE(main_called);
     ASSERT_NE(s->_http_header.find("HTTP/1.1 403 OK\r\n"), std::string::npos);
 }

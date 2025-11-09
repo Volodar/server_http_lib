@@ -20,7 +20,8 @@ TEST(FileContent_Serves_File_And_ContentType) {
     http::ServerApp app(18100);
     http::FileContent handler(app);
 
-    http::Request req("");
+    std::string r;
+    http::Request req(std::move(r));
     std::string path = "/" + filename;
     req.set_path(path);
     auto resp = handler.handle(req);
@@ -39,7 +40,8 @@ TEST(Redirect_Sets_Location_Header) {
     http::ServerApp app(18101);
     http::Redirect handler(app, target);
 
-    http::Request req("");
+    std::string r;
+    http::Request req(std::move(r));
     req.set_path("/whatever");
     auto resp = handler.handle(req);
 

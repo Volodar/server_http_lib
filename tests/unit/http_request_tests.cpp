@@ -12,7 +12,7 @@ TEST(HttpRequest_Parse_And_Params) {
     header += "Content-Length: 11\r\n\r\n"; // body is provided separately by server, we assign below
 
     
-    http::Request req(header);
+    http::Request req(std::move(header));
     ASSERT_EQ(req.get_method(), http::Method::post);
     ASSERT_EQ(req.get_path(), "/api/submit");
     ASSERT_TRUE(req.get_params().has("foo"));
