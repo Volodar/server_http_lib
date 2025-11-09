@@ -101,10 +101,6 @@ std::string methodToStr(Method method) {
         return "GET";
 }
 
-Data::Data(){
-    std::cout << "Data::Data";
-}
-
 Request::Request(std::string&& h)
 : _header(std::move(h)) {
     parse_header();

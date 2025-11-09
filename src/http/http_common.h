@@ -52,7 +52,6 @@ class Params {
 
 class Data {
   public:
-    Data();
     const std::string_view content_type;
     const std::string_view data;
 
