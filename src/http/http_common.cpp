@@ -339,7 +339,7 @@ Response request(const Url &url, http::Method method, const Data &data) {
     Request r(std::move(header_empty));
     r.set_method(method);
     r.set_content_type(data.content_type);
-    r.set_data(std::move(std::string(data.data)));
+    r.set_data(std::string(data.data));
     return request(url, r);
 }
 
