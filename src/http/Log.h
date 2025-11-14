@@ -14,6 +14,7 @@
 #define log_error http::Log(http::Log::Level::error)
 #define log_warning http::Log(http::Log::Level::warning)
 #define log_info http::Log(http::Log::Level::info)
+#define log_debug http::Log(http::Log::Level::debug)
 
 namespace http{
 
@@ -23,6 +24,7 @@ public:
         error,
         warning,
         info,
+        debug,
     };
 public:
     Log(Level level);

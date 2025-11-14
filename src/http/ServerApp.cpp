@@ -52,7 +52,7 @@ void ServerApp::connect_mysql() {
         if (mysql_database != nullptr)
             _mysql->set_schema(mysql_database);
     } else {
-        log_info << "Skip connect tp MySql: env is empty";
+        log_error << "Skip connect tp MySql: env is empty";
     }
 #endif
 }

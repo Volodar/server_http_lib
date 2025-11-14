@@ -86,7 +86,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
                         ec == connection_aborted) {
                         return; // normal closure
                     }
-                    log_error << "Http read error: " << ec.message();
+                    log_warning << "Http read error: " << ec.message();
                     return;
                 }
                 cancel_keep_alive_timeout();

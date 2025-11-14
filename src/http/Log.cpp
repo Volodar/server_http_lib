@@ -32,9 +32,10 @@ Log::~Log(){
         std::lock_guard<std::mutex> lock(log_mutex);
         auto now = time(nullptr);
         std::string kind;
-        if(_level == Level::info) kind = "[INFO]: ";
-        if(_level == Level::warning) kind = "[WARNING]: ";
-        if(_level == Level::error) kind = "[ERROR]: ";
+        if(_level == Level::info)           kind =  "[INFO]:    ";
+        else if(_level == Level::warning)   kind =  "[WARNING]: ";
+        else if(_level == Level::error)     kind =  "[ERROR]:   ";
+        else if(_level == Level::debug)     kind =  "[DEBUG]:   ";
         
         if(_level == Level::info)
             std::cout << "[" << timestamp_to_datetime(now) << "] " << kind <<_buffer << std::endl;

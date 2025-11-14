@@ -75,11 +75,11 @@ void MysqlWrapper::connect(const std::string& host, const std::string& login,
     _user = login;
     _password = password;
     try {
-        log_warning << "MysqlWrapper::connecting...";
+        log_info << "MysqlWrapper::connecting...";
         _driver = get_driver_instance();
 
         auto count = std::thread::hardware_concurrency();
-        log_warning << "Count mysql connections=" << count;
+        log_info << "Count mysql connections=" << count;
         for (int i = 0; i < count; ++i) {
             try {
                 // Создаем соединение

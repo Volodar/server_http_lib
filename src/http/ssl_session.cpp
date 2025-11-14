@@ -24,7 +24,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             if (response.code == ResponseNone.code || response.code == Response404.code)
                 response = it->second.first(request);
         } catch (const std::exception &e) {
-            log_error << e.what();
+            log_error << "Exception on SslSession::process_request, _endpoints" << e.what();
         }
     } else {
         auto ith = _handlers->find(request.get_method());
@@ -32,7 +32,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             try {
                 response = ith->second(request);
             } catch (const std::exception &e) {
-                log_error << e.what();
+                log_error << "Exception on SslSession::process_request, _handlers" << e.what();
             }
         }
     }

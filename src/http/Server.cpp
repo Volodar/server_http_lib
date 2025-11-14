@@ -32,14 +32,14 @@ Server::Server(asio::io_context &io_context, unsigned short http_port)
 : _io_context(io_context)
 , _ssl_ctx(nullptr)
 , _http_acceptor(std::make_unique<asio::ip::tcp::acceptor>(_io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), http_port))) {
-    
+    log_info << "HTTP PORT:  " << http_port;
 }
 
 Server::Server(asio::io_context &io_context, unsigned short https_port, asio::ssl::context *ssl_context)
 : _io_context(io_context)
 , _ssl_ctx(ssl_context)
 , _https_acceptor(std::make_unique<asio::ip::tcp::acceptor>(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), https_port))) {
-    
+    log_info << "HTTPS PORT:  " << https_port;
 }
 
 Server::Server(asio::io_context &io_context, unsigned short http_port, unsigned short https_port, asio::ssl::context *ssl_context)
@@ -47,7 +47,8 @@ Server::Server(asio::io_context &io_context, unsigned short http_port, unsigned 
 , _ssl_ctx(ssl_context)
 , _http_acceptor(std::make_unique<asio::ip::tcp::acceptor>(_io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), http_port)))
 , _https_acceptor(std::make_unique<asio::ip::tcp::acceptor>(io_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), https_port))) {
-    
+    log_info << "HTTP PORT:  " << http_port;
+    log_info << "HTTPS PORT: " << https_port;
 }
 
 Server::~Server() {
@@ -71,6 +72,7 @@ void Server::run(int count_threads) {
         if (count_threads == -1)
             count_threads = std::thread::hardware_concurrency();
 
+        
         if (_http_acceptor)
             accept_http();
         if (_https_acceptor)
