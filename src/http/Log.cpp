@@ -10,8 +10,25 @@
 #include "Scheduler.h"
 #include <atomic>
 #include <mutex>
+#include <execinfo.h>
 
 namespace http{
+
+std::string get_stack_trace() {
+    std::string buffer = " -= STACKTRACE: =- \n================================================================================\n";
+    buffer.reserve(1024*4);
+    void* array[10];
+    int size;
+    size = backtrace(array, 10);
+    char** symbols = backtrace_symbols(array, size);
+    for (size_t i = 0; i < size; ++i) {
+        buffer += symbols[i];
+        buffer += "\n";
+    }
+    free(symbols); // Важно освободить память
+    buffer += "================================================================================";
+    return buffer;
+}
 
 static std::atomic<Log::Level> global_level = Log::Level::info;
 static std::mutex log_mutex;

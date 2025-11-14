@@ -49,5 +49,7 @@ private:
     std::string _buffer;
 };
 
+std::string get_stack_trace();
+
 }
 #endif /* Log_hpp */
