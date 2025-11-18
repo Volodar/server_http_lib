@@ -112,7 +112,7 @@ static inline int hex_val(char ch) {
     return -1;
 }
 
-std::string url_decode(const std::string& input) {
+std::string url_decode(const std::string_view& input) {
     std::string out;
     out.reserve(input.size());
     size_t i = 0;
@@ -140,7 +140,7 @@ std::string url_decode(const std::string& input) {
     }
     return out;
 }
-std::string url_encode(const std::string& input) {
+std::string url_encode(const std::string_view& input) {
     std::string out;
     out.reserve(input.size() * 3);
     auto hex_upper = [](unsigned char v) -> char {

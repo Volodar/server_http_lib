@@ -104,8 +104,8 @@ std::string format_indexes(const std::string& template_str, Args &&...args) {
     return query;
 }
 
-std::string url_encode(const std::string& input);
-std::string url_decode(const std::string& input);
+std::string url_encode(const std::string_view& input);
+std::string url_decode(const std::string_view& input);
 std::string sha256(const std::string& input);
 
 template <typename T>
