@@ -31,8 +31,12 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             response.body = e.get_body();
         } catch (const std::exception &e) {
             log_error << "Exception on SslSession::process_request, _endpoints" << e.what();
+            response.code = 500;
+            response.body = e.what();
         } catch (...) {
             log_error << "non std Exception on SslSession::process_request, _endpoints";
+            response.code = 500;
+            response.body = "non std Exception on SslSession::process_request, _endpoints";
         }
     } else {
         auto ith = _handlers->find(request.get_method());
@@ -44,8 +48,12 @@ void SslSession<SocketType>::process_request(std::string&& header_,
                 response.body = e.get_body();
             } catch (const std::exception &e) {
                 log_error << "Exception on SslSession::process_request, _handlers" << e.what();
+                response.code = 500;
+                response.body = e.what();
             } catch (...) {
                 log_error << "non std Exception on SslSession::process_request, _endpoints";
+                response.code = 500;
+                response.body = "non std Exception on SslSession::process_request, _endpoints";
             }
         }
     }
