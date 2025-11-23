@@ -11,10 +11,10 @@
 #include <string>
 #include <string_view>
 
-#define log_error http::Log(http::Log::Level::error)
-#define log_warning http::Log(http::Log::Level::warning)
-#define log_info http::Log(http::Log::Level::info)
-#define log_debug http::Log(http::Log::Level::debug)
+#define log_error   if(http::Log::Level::error      <= http::Log::get_level())  http::Log(http::Log::Level::error)
+#define log_warning if(http::Log::Level::warning    <= http::Log::get_level())  http::Log(http::Log::Level::warning)
+#define log_info    if(http::Log::Level::info       <= http::Log::get_level())  http::Log(http::Log::Level::info)
+#define log_debug   if(http::Log::Level::debug      <= http::Log::get_level())  http::Log(http::Log::Level::debug)
 
 namespace http{
 
@@ -30,6 +30,7 @@ public:
     Log(Level level);
     ~Log();
     static void set_level(Level level);
+    static Level level_from_str(std::string_view str);
     static Level get_level();
     Log& operator << (const std::string& message);
     Log& operator << (const std::string_view& message);

@@ -138,6 +138,7 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
             // Scan headers
             const char *p = _buf.data();
             const char *stop = _buf.data() + _headers_len;
+            log_debug << "SslSession::try_parse_and_handle: " << std::string_view(p, stop);
             _content_length = 0;
             _expect_continue = false;
             // Skip request line
@@ -206,6 +207,8 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
 
         std::string header_str(_buf.data(), _headers_len);
         std::string body_str;
+        if(_content_length > 0)
+            log_debug << "Content size: " << _content_length << " request: " << header_str;
         if (_content_length)
             body_str.assign(_buf.data() + _headers_len, _content_length);
 

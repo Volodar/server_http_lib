@@ -16,6 +16,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
     Response response = Response404;
     std::string statusText = "OK";
     auto it = _endpoints->find(key);
+    log_debug << "SslSession<SocketType>::process_request: " << methodToStr(request.get_method()) << ": " << request.get_path();
     if (it != _endpoints->end()) {
         try {
             auto sequire = it->second.second;
@@ -25,6 +26,8 @@ void SslSession<SocketType>::process_request(std::string&& header_,
                 response = it->second.first(request);
         } catch (const std::exception &e) {
             log_error << "Exception on SslSession::process_request, _endpoints" << e.what();
+        } catch (...) {
+            log_error << "non std Exception on SslSession::process_request, _endpoints";
         }
     } else {
         auto ith = _handlers->find(request.get_method());
@@ -33,6 +36,8 @@ void SslSession<SocketType>::process_request(std::string&& header_,
                 response = ith->second(request);
             } catch (const std::exception &e) {
                 log_error << "Exception on SslSession::process_request, _handlers" << e.what();
+            } catch (...) {
+                log_error << "non std Exception on SslSession::process_request, _endpoints";
             }
         }
     }

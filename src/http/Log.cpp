@@ -9,8 +9,8 @@
 #include <iostream>
 #include "Scheduler.h"
 #include <atomic>
-#include <mutex>
 #include <execinfo.h>
+#include "utils.h"
 
 namespace http{
 
@@ -31,14 +31,18 @@ std::string get_stack_trace() {
 }
 
 static std::atomic<Log::Level> global_level = Log::Level::info;
-static std::mutex log_mutex;
 
 void Log::set_level(Level level){
-    std::lock_guard<std::mutex> lock(log_mutex);
     global_level = level;
 }
+Log::Level Log::level_from_str(std::string_view str){
+    if(str == "error") return Level::error;
+    if(str == "warning") return Level::warning;
+    if(str == "info") return Level::info;
+    if(str == "debug") return Level::debug;
+    return Level::info;
+}
 Log::Level Log::get_level(){
-    std::lock_guard<std::mutex> lock(log_mutex);
     return global_level;
 }
 
@@ -46,7 +50,6 @@ Log::Log(Level level): _level(level){
 }
 Log::~Log(){
     if(_level <= get_level()){
-        std::lock_guard<std::mutex> lock(log_mutex);
         auto now = time(nullptr);
         std::string kind;
         if(_level == Level::info)           kind =  "[INFO]:    ";
