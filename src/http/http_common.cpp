@@ -260,6 +260,9 @@ void Request::set_data(std::string&& value) {
     _post_data = std::move(value);
 }
 void Request::set_method(Method method) { this->_method = method; }
+void Request::set_params(std::string_view name, std::string_view value){
+    _params.set(name, value);
+}
 Method Request::get_method() const { return _method; }
 std::string_view Request::get_path() const { return _path; }
 std::string_view Request::get_user_agent() const {
@@ -372,6 +375,11 @@ Response request(const Url &url, const Request &request) {
         req += methodToStr(request.get_method());
         req += ' ';
         req += url.endpoint;
+        if(!request.get_params().empty()){
+            auto params = request.get_params().to_string();
+            req += "?";
+            req += params;
+        }
         req += " HTTP/1.1\r\n";
         req += "Host: ";
         req += host;
