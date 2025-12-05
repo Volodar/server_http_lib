@@ -10,7 +10,7 @@ namespace http {
 class Url {
   public:
     std::string host;
-    int port;
+    int port = 0;
     std::string endpoint;
     bool https = false; // use TLS when true
 };
