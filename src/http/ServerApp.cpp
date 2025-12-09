@@ -57,6 +57,9 @@ void ServerApp::connect_mysql() {
 #endif
 }
 
-void ServerApp::run(int num_threads) { _http_server->run(num_threads); }
+void ServerApp::run(int num_threads) {
+    _http_server->run(num_threads);
+    _context.run();
+}
 
 } // namespace http
