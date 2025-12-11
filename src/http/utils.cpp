@@ -96,6 +96,12 @@ template <> std::string to_string(const long long &value) {
 template <> std::string to_string(const float &value) {
     return std::to_string(value);
 }
+template <> std::string to_string(const double &value) {
+    return std::to_string(value);
+}
+template <> std::string to_string(const long double &value) {
+    return std::to_string(value);
+}
 template <> std::string to_string(const std::string& value) { return value; }
 template <> std::string to_string(const std::string_view& value) { return std::string(value); }
 
