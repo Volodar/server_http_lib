@@ -77,6 +77,7 @@ class Request {
     void set_data(std::string&& value);
     void set_method(Method method);
     void set_params(std::string_view name, std::string_view value);
+    void add_header(const std::string& name, std::string_view value);
 
     Method get_method() const;
     std::string_view get_path() const;
