@@ -40,8 +40,8 @@ struct AssertFailure : public std::runtime_error {
 #define ASSERT_TRUE(x) do { if(!(x)) throw ::tinytest::AssertFailure(std::string("ASSERT_TRUE failed: ") + #x); } while(0)
 #define ASSERT_FALSE(x) ASSERT_TRUE(!(x))
 #define ASSERT_EQ(a,b) do { if(!((a)==(b))) { \
-  std::ostringstream _oss; _oss << "ASSERT_EQ failed: " << #a << " == " << #b << " | L: " << __LINE__; \
+  std::ostringstream _oss; _oss << "ASSERT_EQ failed: " << #a << " == " << #b <<"("<<(a)<<"!="<<(b)<< ") | L: " << __LINE__; \
   throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
 #define ASSERT_NE(a,b) do { if(!((a)!=(b))) { \
-  std::ostringstream _oss; _oss << "ASSERT_NE failed: " << #a << " != " << #b << " | L: " << __LINE__; \
+  std::ostringstream _oss; _oss << "ASSERT_NE failed: " << #a << " != " << #b <<"("<<(a)<<"=="<<(b)<< ") | L: " << __LINE__; \
   throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
