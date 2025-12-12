@@ -16,7 +16,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
     Response response = Response404;
     std::string statusText = "OK";
     auto it = _endpoints->find(key);
-    log_debug << "SslSession<SocketType>::process_request: " << methodToStr(request.get_method()) << ": " << request.get_path();
+    log_debug << methodToStr(request.get_method()) << ": " << request.get_path();
     if (it != _endpoints->end()) {
         try {
             auto sequire = it->second.second;
@@ -94,7 +94,21 @@ void SslSession<SocketType>::process_request(std::string&& header_,
     } else {
         _http_header += "\r\nConnection: close\r\n\r\n";
     }
-
+    
+    if(Log::Level::debug <= Log::get_level()){
+        std::string_view sv_body = _http_body;
+        std::string_view sv_header = _http_header;
+        if(response.code == 300 || response.code == 302){
+            auto k = sv_header.find('\n');
+            if(k != std::string::npos)
+                sv_body = sv_header.substr(k + 1);
+        }
+        size_t n = sv_body.find('\n');
+        if(n == std::string::npos)
+            n = 160;
+        n = std::min<size_t>(sv_body.size(), n);
+        log_debug << "    -> " << response.code << ((response.code == 300 || response.code == 302) ? ", first header: " : ": ") << sv_body.substr(0, n);
+    }
     do_write();
 }
 
