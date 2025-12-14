@@ -101,6 +101,11 @@ std::string methodToStr(Method method) {
         return "GET";
 }
 
+std::ostream& operator<<(std::ostream& os, Method method) {
+    os << methodToStr(method);
+    return os;
+}
+
 Request::Request(std::string&& h)
 : _header(std::move(h)) {
     parse_header();

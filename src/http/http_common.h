@@ -140,6 +140,8 @@ Response request(const Url &url, const Request &request);
 
 Method strToMethod(const std::string& methodStr);
 std::string methodToStr(Method method);
+std::ostream& operator<<(std::ostream& os, Method method);
+
 
 } // namespace http
 
