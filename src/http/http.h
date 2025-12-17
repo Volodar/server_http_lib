@@ -15,5 +15,6 @@
 #include "http/ServerApp.h"
 #include "http/http_common.h"
 #include "http/utils.h"
+#include "http/Client.h"
 
 #endif /* http_hpp */
