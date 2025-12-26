@@ -280,6 +280,9 @@ std::string_view Request::get_content_type() const {
     return get_headers().get(CONTENT_TYPE);
 }
 std::string_view Request::get_data() const { return _post_data; }
+std::string&& Request::move_data() {
+    return std::move(_post_data);
+}
 const std::string& Request::get_user_ip() const { return _user_ip; }
 const Params &Request::get_params() const { return _params; }
 const Params &Request::get_post_data_params() const {

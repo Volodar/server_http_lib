@@ -82,6 +82,7 @@ class Request {
     Method get_method() const;
     std::string_view get_path() const;
     std::string_view get_data() const;
+    std::string&& move_data();
     const std::string& get_user_ip() const;
     const Params &get_params() const;
     const Params &get_post_data_params() const;
