@@ -82,7 +82,7 @@ Method strToMethod(const std::string& methodStr) {
     if(is_equal_lower(s, size, "get")) return Method::get;
     if(is_equal_lower(s, size, "post")) return Method::post;
     if(is_equal_lower(s, size, "put")) return Method::put;
-    if(is_equal_lower(s, size, "del")) return Method::del;
+    if(is_equal_lower(s, size, "delete")) return Method::del;
     if(is_equal_lower(s, size, "create")) return Method::create;
     return Method::get;
 }
