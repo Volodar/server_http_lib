@@ -80,6 +80,12 @@ void replace(std::string& str, const std::string& from, const std::string& to) {
         start_pos += to.length();
     }
 }
+void replace(std::string& str, char from, char to){
+    for(auto& ch : str){
+        if(ch == from)
+            ch = to;
+    }
+}
 
 template <> std::string to_string(const int &value) {
     return std::to_string(value);
@@ -113,7 +119,7 @@ std::string format(const std::string& template_str, const std::unordered_map<std
     return result;
 }
 
-static inline int hex_val(char ch) {
+int hex_val(char ch) {
     if (ch >= '0' && ch <= '9') return ch - '0';
     if (ch >= 'a' && ch <= 'f') return 10 + (ch - 'a');
     if (ch >= 'A' && ch <= 'F') return 10 + (ch - 'A');

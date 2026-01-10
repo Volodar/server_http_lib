@@ -70,6 +70,7 @@ std::string get_content_type(const std::string_view &path);
 Json::Value read_json_from_string(const std::string& string);
 
 void replace(std::string& str, const std::string& from, const std::string& to);
+void replace(std::string& str, char from, char to);
 
 template <typename T> std::string to_string(const T &value);
 
@@ -104,6 +105,7 @@ std::string format_indexes(const std::string& template_str, Args &&...args) {
     return query;
 }
 
+int hex_val(char ch);
 std::string url_encode(const std::string_view& input);
 std::string url_decode(const std::string_view& input);
 std::string sha256(const std::string& input);

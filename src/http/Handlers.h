@@ -10,6 +10,7 @@
 
 #include "http/Server.h"
 #include "http/http_common.h"
+#include <filesystem>
 
 namespace http {
 
@@ -32,6 +33,8 @@ class FileContent : public RequestHandler {
 public:
     FileContent(ServerApp &app, Handler auth_handler=nullptr);
     virtual http::Response handle(const http::Request &request) override;
+
+    static bool normalize_asset_path(std::string_view input, std::filesystem::path &out_path);
 };
 
 class Redirect : public RequestHandler {

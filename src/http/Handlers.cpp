@@ -18,8 +18,11 @@ FileContent::FileContent(ServerApp &app, Handler auth_handler)
 
 Response FileContent::handle(const http::Request &request) {
     try {
-        std::string path = "assets/" + std::string(request.get_path());
-        std::string body = get_file_content(path);
+        std::filesystem::path normalized_path;
+        if(!normalize_asset_path(request.get_path(), normalized_path))
+            return Response(400, "invalid path");
+        
+        std::string body = get_file_content(normalized_path.string());
         if (body.empty())
             return Handler404(_app).handle(request);
     
@@ -44,6 +47,44 @@ Response FileContent::handle(const http::Request &request) {
     } catch (...) {
         return Handler404(_app).handle(request);
     }
+}
+
+bool FileContent::normalize_asset_path(std::string_view input, std::filesystem::path &out_path){
+    std::string clean(input);
+    int iterations = 3;
+    while(clean.find('%') && iterations-- > 0){
+        clean = url_decode(clean);
+    }
+    
+    for(char c : clean){
+        unsigned char uc = static_cast<unsigned char>(c);
+        if(uc < 32 || uc == 127 || uc == '%')
+            return false;
+    }
+    replace(clean, '\\', '/');
+    if(!clean.empty() && clean[0] == '/')
+        clean.erase(0, 1);
+
+    std::filesystem::path rel(clean);
+    if(rel.is_absolute() || rel.has_root_path())
+        return false;
+    if(!rel.empty() && *rel.begin() == "assets"){
+        std::filesystem::path stripped;
+        auto it = rel.begin();
+        ++it;
+        for(; it != rel.end(); ++it)
+            stripped /= *it;
+        rel = stripped;
+    }
+    rel = rel.lexically_normal();
+    if(rel.empty() || rel == ".")
+        return false;
+    for(const auto &part : rel){
+        if(part == "..")
+            return false;
+    }
+    out_path = std::filesystem::path("assets") / rel;
+    return true;
 }
 
 Redirect::Redirect(ServerApp &app, const std::string& redirect)
