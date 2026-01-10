@@ -77,8 +77,13 @@ void MysqlWrapper::connect(const std::string& host, const std::string& login,
     try {
         log_info << "MysqlWrapper::connecting...";
         _driver = get_driver_instance();
-
+        
         auto count = std::thread::hardware_concurrency();
+        auto mysql_connections_count = std::getenv("MYSQL_CONN");
+        if(mysql_connections_count){
+            count = std::stoi(mysql_connections_count);
+        }
+        
         log_info << "Count mysql connections=" << count;
         for (int i = 0; i < count; ++i) {
             try {
