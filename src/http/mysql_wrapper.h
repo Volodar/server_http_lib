@@ -64,12 +64,20 @@ template <typename T> std::string to_sql_value(const T &value) {
     return std::to_string(value);
 }
 inline std::string to_sql_value(const std::string& value) {
-    std::string escaped = value;
-    // Простейший эскейпинг кавычек
-    size_t pos = 0;
-    while ((pos = escaped.find("'", pos)) != std::string::npos) {
-        escaped.insert(pos, "'");
-        pos += 2;
+    std::string escaped;
+    escaped.reserve(value.size() * 2);
+    for(char c : value){
+        if(c == '\''){
+            escaped.push_back('\'');
+            escaped.push_back('\'');
+            continue;
+        }
+        if(c == '\\' || c == '"'){
+            escaped.push_back('\\');
+            escaped.push_back(c);
+            continue;
+        }
+        escaped.push_back(c);
     }
     return escaped;
 }
