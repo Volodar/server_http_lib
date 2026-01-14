@@ -87,6 +87,9 @@ inline std::string to_sql_value(std::string_view value) {
 inline std::string to_sql_value(const char *value) {
     return to_sql_value(std::string(value));
 }
+inline std::string to_sql_value(char *value) {
+    return to_sql_value(std::string(value));
+}
 
 template <typename... Args>
 std::string build_query(const std::string& template_str, Args &&...args) {
