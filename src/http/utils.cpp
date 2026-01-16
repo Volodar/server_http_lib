@@ -128,7 +128,7 @@ int hex_val(char ch) {
 
 std::string url_decode(const std::string_view& input) {
     std::string out;
-    log_debug << "url decode, reserve string size: " << input.size();
+//    log_debug << "url decode, reserve string size: " << input.size();
     out.reserve(input.size());
     size_t i = 0;
     while (i < input.size()) {
@@ -157,7 +157,7 @@ std::string url_decode(const std::string_view& input) {
 }
 std::string url_encode(const std::string_view& input) {
     std::string out;
-    log_debug << "url encode, reserve string size: " << input.size() * 3;
+//    log_debug << "url encode, reserve string size: " << input.size() * 3;
     out.reserve(input.size() * 3);
     auto hex_upper = [](unsigned char v) -> char {
         static const char* HEX = "0123456789ABCDEF";
