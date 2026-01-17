@@ -118,7 +118,7 @@ std::string build_query(const std::string& template_str, Args &&...args) {
             pos += value.length();
             was_replace = true;
         }
-
+        (void)was_replace;
         assert(was_replace && "missing placeholder in query");
     }
 

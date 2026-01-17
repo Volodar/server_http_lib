@@ -91,6 +91,7 @@ std::string format_indexes(const std::string& template_str, Args &&...args) {
             pos += value.length();
             was_replace = true;
         }
+        (void)was_replace;
         assert(was_replace);
     };
 
