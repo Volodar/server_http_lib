@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include "Log.h"
+#include "RequestIncoming.h"
 
 namespace http {
 
@@ -34,7 +35,7 @@ struct EndpointKeyHash {
     }
 };
 
-using Handler = std::function<Response(const Request &)>;
+using Handler = std::function<Response(const RequestIncoming &)>;
 using EndpointMap = std::unordered_map<EndpointKey, std::pair<Handler, Handler>,
                                        EndpointKeyHash>;
 

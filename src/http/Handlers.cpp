@@ -17,7 +17,7 @@ FileContent::FileContent(ServerApp &app, Handler auth_handler)
     set_sequire(auth_handler);
 }
 
-Response FileContent::handle(const http::Request &request) {
+Response FileContent::handle(const http::RequestIncoming &request) {
     try {
         std::filesystem::path normalized_path;
         if(!normalize_asset_path(request.get_path(), normalized_path))
@@ -94,26 +94,18 @@ Redirect::Redirect(ServerApp &app, const std::string& redirect)
     
 }
 
-Response Redirect::handle(const http::Request &request) {
+Response Redirect::handle(const http::RequestIncoming &request) {
     http::Response response(301, "");
     response.add_header("Location", _redirect);
     return response;
 }
 
-Handler404::Handler404(ServerApp &app)
-: RequestHandler(app) {
-};
-
-Response Handler404::handle(const http::Request &request) {
+Response Handler404::handle(const http::RequestIncoming &request) {
     http::Response response = http::Response404;
     return response;
 }
 
-HealthHandler::HealthHandler(ServerApp &app)
-: RequestHandler(app) {
-}
-
-Response HealthHandler::handle(const http::Request &) {
+Response HealthHandler::handle(const http::RequestIncoming &) {
     http::Response r(200, "{\"status\":\"ok\"}");
     r.add_header_content_type(ContentType::Json);
     return r;

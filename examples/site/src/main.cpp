@@ -9,7 +9,7 @@ class HttpIndex : public http::RequestHandler
 {
 public:
     using http::RequestHandler::RequestHandler;
-    virtual http::Response handle(const http::Request& request) override{
+    virtual http::Response handle(const http::RequestIncoming& request) override{
         std::string body = "Hello world\n";
         body += "\nPath: " + std::string(request.get_path()) + "\n";
         body += "\nParams: \n" + request.get_params().to_string() + "\n";

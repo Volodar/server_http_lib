@@ -48,6 +48,10 @@ class Params {
     end() const noexcept {
         return _params.end();
     }
+    std::unordered_map<std::string_view, std::string_view>::const_iterator
+    find(std::string_view name) const {
+        return _params.find(name);
+    }
     size_t get_buffer_lenght() const { return _len; }
 
 private:

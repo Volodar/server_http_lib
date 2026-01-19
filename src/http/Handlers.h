@@ -9,7 +9,7 @@
 #define RequestHandlers_hpp
 
 #include "http/Server.h"
-#include "http/Request.h"
+#include "http/RequestIncoming.h"
 #include <filesystem>
 
 namespace http {
@@ -20,7 +20,7 @@ class RequestHandler {
   public:
     RequestHandler(ServerApp &app) : _app(app) {}
     virtual ~RequestHandler() = default;
-    virtual http::Response handle(const http::Request &request) = 0;
+    virtual http::Response handle(const http::RequestIncoming &request) = 0;
     void set_sequire(const Handler &handler) { _sequire_handler = handler; }
     const Handler &get_sequire_handler() { return _sequire_handler; }
 
@@ -32,7 +32,7 @@ class RequestHandler {
 class FileContent : public RequestHandler {
 public:
     FileContent(ServerApp &app, Handler auth_handler=nullptr);
-    virtual http::Response handle(const http::Request &request) override;
+    virtual http::Response handle(const http::RequestIncoming &request) override;
 
     static bool normalize_asset_path(std::string_view input, std::filesystem::path &out_path);
 };
@@ -40,7 +40,7 @@ public:
 class Redirect : public RequestHandler {
   public:
     Redirect(ServerApp &app, const std::string& redirect);
-    virtual http::Response handle(const http::Request &request) override;
+    virtual http::Response handle(const http::RequestIncoming &request) override;
 
   private:
     std::string _redirect;
@@ -48,15 +48,15 @@ class Redirect : public RequestHandler {
 
 class Handler404 : public RequestHandler {
   public:
-    Handler404(ServerApp &app);
-    virtual http::Response handle(const http::Request &request) override;
+    using RequestHandler::RequestHandler;
+    virtual http::Response handle(const http::RequestIncoming &request) override;
 };
 
 // Common health endpoint handler: returns {"status":"ok"}
 class HealthHandler : public RequestHandler {
   public:
-    HealthHandler(ServerApp &app);
-    virtual http::Response handle(const http::Request &request) override;
+    using RequestHandler::RequestHandler;
+    virtual http::Response handle(const http::RequestIncoming &request) override;
 };
 
 } // namespace http

@@ -18,6 +18,8 @@ public:
 
     void set_user_ip(const std::string& value) { _user_ip = value; }
     const std::string& get_user_ip() const { return _user_ip; }
+    
+    std::string_view get(std::string_view name, bool require) const;
 protected:
     virtual void parse_header() override;
     virtual void parse_headers() const override;

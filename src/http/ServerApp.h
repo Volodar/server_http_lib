@@ -20,6 +20,20 @@
 
 namespace http {
 
+const int require = 1;
+const int optional = 0;
+
+class CheckApiParam{
+public:
+    std::string name;
+    std::string type;
+    int is_require = require;
+};
+
+using GetParams = std::vector<CheckApiParam>;
+using PostParams = std::vector<CheckApiParam>;
+using Headers = std::vector<CheckApiParam>;
+
 class ServerApp {
   public:
     ServerApp(int http_port);
@@ -34,7 +48,7 @@ class ServerApp {
 #endif
     std::shared_ptr<Server> get_http() { return _http_server; };
     std::shared_ptr<Scheduler> get_scheduler() { return _scheduler; };
-
+    
     template <class T, typename... Args>
     void add_endpoint(const std::string& path, http::Method http_method,
                       Args &&...args) {
@@ -42,7 +56,7 @@ class ServerApp {
         _request_handlers.push_back(handler);
         _http_server->add_endpoint(
             path, http_method,
-            [handler](const http::Request &request) -> http::Response {
+            [handler](const http::RequestIncoming &request) -> http::Response {
                 if (handler->get_sequire_handler()) {
                     auto sequire = handler->get_sequire_handler();
                     auto response = sequire(request);
@@ -59,7 +73,7 @@ class ServerApp {
         _request_handlers.push_back(handler);
         _http_server->add_handler(
             http_method,
-            [handler](const http::Request &request) -> http::Response {
+            [handler](const http::RequestIncoming &request) -> http::Response {
                 return handler->handle(request);
             });
     }

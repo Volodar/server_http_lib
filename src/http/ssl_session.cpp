@@ -3,6 +3,7 @@
 #include <charconv>
 #include "Log.h"
 #include "RequestIncoming.h"
+#include "Exceptions.h"
 
 namespace http {
 
@@ -25,6 +26,9 @@ void SslSession<SocketType>::process_request(std::string&& header_,
                 response = sequire(request);
             if (response.code == ResponseNone.code || response.code == Response404.code)
                 response = it->second.first(request);
+        } catch (const ResponseException& e){
+            response.code = e.get_code();
+            response.body = e.get_body();
         } catch (const std::exception &e) {
             log_error << "Exception on SslSession::process_request, _endpoints" << e.what();
         } catch (...) {
@@ -35,6 +39,9 @@ void SslSession<SocketType>::process_request(std::string&& header_,
         if (ith != _handlers->end()) {
             try {
                 response = ith->second(request);
+            } catch (const ResponseException& e){
+                response.code = e.get_code();
+                response.body = e.get_body();
             } catch (const std::exception &e) {
                 log_error << "Exception on SslSession::process_request, _handlers" << e.what();
             } catch (...) {

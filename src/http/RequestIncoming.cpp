@@ -7,12 +7,21 @@
 
 #include "RequestIncoming.h"
 #include "utils.h"
+#include "Exceptions.h"
 
 namespace http {
 
 RequestIncoming::RequestIncoming(std::string&& header)
 : _header(std::move(header)) {
     parse_header();
+}
+
+std::string_view RequestIncoming::get(std::string_view name, bool require) const {
+    auto iter = _params.find(name);
+    if(iter == _params.end()){
+        throw ResponseException(400, "Parameter " + std::string(name) + " is missing.");
+    }
+    return iter->second;
 }
 
 void RequestIncoming::parse_header() {

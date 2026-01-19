@@ -27,4 +27,3 @@ TEST(ServerApp_AddHandler_Fallback) {
     app.get_context().stop();
     if (t.joinable()) t.join();
 }
-
