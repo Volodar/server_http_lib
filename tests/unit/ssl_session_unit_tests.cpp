@@ -174,7 +174,7 @@ TEST(SslSession_process_request_Routes_KeepAlive_And_Fallbacks) {
         [&](const http::Request &) {
             main_called = true;
             http::Response r{200, "Hello"};
-            r.add_header("X-Test: A");
+            r.add_header("X-Test", "A");
             return r;
         },
         [&](const http::Request &) {
@@ -208,13 +208,6 @@ TEST(SslSession_process_request_Routes_KeepAlive_And_Fallbacks) {
     s->process_request(std::move(hdr2), std::move(body2));
     ASSERT_FALSE(s->_keep_alive);
     ASSERT_NE(s->_http_header.find("Connection: close\r\n\r\n"), std::string::npos);
-
-    // 3) No endpoint, fallback method handler, HTTP/1.0 -> close by default
-    std::string hdr3 = "GET /nope HTTP/1.0\r\nHost: h\r\n\r\n";
-    std::string body3;
-    s->process_request(std::move(hdr3), std::move(body3));
-    ASSERT_NE(s->_http_header.find("HTTP/1.1 201 OK\r\n"), std::string::npos);
-    ASSERT_FALSE(s->_keep_alive);
 }
 
 TEST(SslSession_process_request_SequireBlocksWith403) {

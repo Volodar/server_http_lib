@@ -9,7 +9,7 @@
 #define RequestHandlers_hpp
 
 #include "http/Server.h"
-#include "http/http_common.h"
+#include "http/Request.h"
 #include <filesystem>
 
 namespace http {

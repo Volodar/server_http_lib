@@ -8,6 +8,7 @@
 #include "http/Handlers.h"
 #include "http/ServerApp.h"
 #include "http/utils.h"
+#include "Request.h"
 
 namespace http {
 
@@ -95,7 +96,7 @@ Redirect::Redirect(ServerApp &app, const std::string& redirect)
 
 Response Redirect::handle(const http::Request &request) {
     http::Response response(301, "");
-    response.add_header("Location: " + _redirect);
+    response.add_header("Location", _redirect);
     return response;
 }
 

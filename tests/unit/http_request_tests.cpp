@@ -1,5 +1,6 @@
 #include "test_framework.h"
 #include "http/Server.h"
+#include "http/RequestIncoming.h"
 #include <string>
 
 TEST(HttpRequest_Parse_And_Params) {
@@ -12,7 +13,7 @@ TEST(HttpRequest_Parse_And_Params) {
     header += "Content-Length: 11\r\n\r\n"; // body is provided separately by server, we assign below
 
     
-    http::Request req(std::move(header));
+    http::RequestIncoming req(std::move(header));
     ASSERT_EQ(req.get_method(), http::Method::post);
     ASSERT_EQ(req.get_path(), "/api/submit");
     ASSERT_TRUE(req.get_params().has("foo"));

@@ -1,0 +1,33 @@
+//
+//  InRequest.hpp
+//  http
+//
+//  Created by Vladimir Tolmachev on 18.01.2026.
+//
+
+#ifndef InRequest_hpp
+#define InRequest_hpp
+
+#include "Request.h"
+
+namespace http{
+
+class RequestIncoming : public Request{
+public:
+    explicit RequestIncoming(std::string&& header);
+
+    void set_user_ip(const std::string& value) { _user_ip = value; }
+    const std::string& get_user_ip() const { return _user_ip; }
+protected:
+    virtual void parse_header() override;
+    virtual void parse_headers() const override;
+    virtual void parse_post_data_params() const override;
+    virtual void parse_cookie_params() const override;
+private:
+    std::string _user_ip;
+    std::string _header;
+    size_t _headers_pos = -1;
+};
+
+}
+#endif /* InRequest_hpp */

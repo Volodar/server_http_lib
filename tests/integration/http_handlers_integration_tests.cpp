@@ -32,7 +32,8 @@ TEST(FileContent_Integration_Serves_File) {
     ASSERT_EQ(r.body, payload);
 
     app.get_context().stop();
-    if (t.joinable()) t.join();
+    if (t.joinable())
+        t.join();
 }
 
 TEST(Redirect_Integration_Returns_301) {

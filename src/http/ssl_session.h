@@ -52,9 +52,6 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
         } catch (const std::exception &e) {
             log_error << "Exception on create session: " << e.what();
         }
-        // Pre-reserve buffers to reduce reallocations
-        _http_header.reserve(512);
-        _http_body.reserve(1024);
         _buf.resize(8192);
     }
     void start() {

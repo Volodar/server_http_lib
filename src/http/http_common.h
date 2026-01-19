@@ -7,6 +7,9 @@
 
 namespace http {
 
+class Request;
+class RequestOutgoming;
+
 class Url {
   public:
     std::string host;
@@ -45,89 +48,41 @@ class Params {
     end() const noexcept {
         return _params.end();
     }
+    size_t get_buffer_lenght() const { return _len; }
 
-  private:
+private:
+    size_t _len = 0;
     std::unordered_map<std::string_view, std::string_view> _params;
 };
 
 class Data {
   public:
-    const std::string_view content_type;
-    const std::string_view data;
+    const std::string content_type;
+    const std::string data;
 
     operator bool() const { return !data.empty(); }
 };
 
 class Response;
 
-class Request {
-  public:
-    Request(const std::string& header) = delete;
-    Request(const char* header) = delete;
-    Request(const Request&) = delete;
-    const Request& operator=(const Request&) = delete;
-    
-    explicit Request(std::string&& header);
-    
-    const std::string& get_source_header_string() const { return _header; }
-
-    void set_user_ip(const std::string& value);
-    void set_path(std::string_view value);
-    void set_content_type(std::string_view value);
-    void set_data(std::string&& value);
-    void set_method(Method method);
-    void set_params(std::string_view name, std::string_view value);
-    void add_header(const std::string& name, std::string_view value);
-
-    Method get_method() const;
-    std::string_view get_path() const;
-    std::string_view get_data() const;
-    std::string&& move_data();
-    const std::string& get_user_ip() const;
-    const Params &get_params() const;
-    const Params &get_post_data_params() const;
-    const Params &get_headers() const;
-    const Params &get_cookie_params() const;
-
-    std::string_view get_user_agent() const;
-    std::string_view get_content_type() const;
-    std::string_view get_post_data_param(const std::string& name) const;
-    std::string_view get_cookie_value(const std::string& name) const;
-    
-    std::vector<std::string_view> get_accept_language() const;
-
-  private:
-    void parse_header();
-    void parse_headers() const;
-    void parse_post_data_params() const;
-    void parse_cookie_params() const;
-
-  private:
-    std::string _header;
-
-    Method _method;
-    std::string_view _path;
-    Params _params;
-    mutable Params _headers;
-    mutable Params _post_data_params;
-    mutable Params _cookie_params;
-    std::string _post_data;
-    std::string _user_ip;
-    size_t _headers_pos = -1;
-};
-
 class Response {
   public:
     Response();
     Response(int code, const std::string& body = "");
-    void add_header(const std::string& header);
     void add_header(const std::string& name, const std::string& value);
     void add_header_content_type(const std::string& type);
 
-  public:
+    int get_code() const { return code; }
+    std::string& get_body() { return body; }
+    const std::vector<std::pair<std::string, std::string>>& get_headers() const { return _headers; }
+    
+    std::string get_http_header(bool keep_alive, size_t _keep_alive_timeout) const;
+public:
     int code;
     std::string body;
-    std::vector<std::string> headers;
+private:
+    std::vector<std::pair<std::string, std::string>> _headers;
+    size_t _headers_buffer_len = 0;
 };
 
 extern Response ResponseNone;
@@ -135,9 +90,10 @@ extern Response ResponseOk;
 extern Response Response403;
 extern Response Response404;
 
-// Унифицированный HTTP‑запрос. Если data непустой — тело включается и для GET.
+Response post(const char* host, const char* port, const char* path, std::string&& body, const std::vector<std::pair<std::string, std::string>>& headers);
+Response get(const char* host, const char* port, const char* path, std::string&& body, const std::vector<std::pair<std::string, std::string>>& headers);
 Response request(const Url &url, Method method, const Data &data = {});
-Response request(const Url &url, const Request &request);
+Response request(const Url &url, RequestOutgoming &request);
 
 Method strToMethod(const std::string& methodStr);
 std::string methodToStr(Method method);

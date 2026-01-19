@@ -15,6 +15,7 @@
 #include "http/ServerApp.h"
 #include "http/http_common.h"
 #include "http/utils.h"
-#include "http/Client.h"
+#include "http/RequestOutgoming.h"
+#include "http/RequestIncoming.h"
 
 #endif /* http_hpp */

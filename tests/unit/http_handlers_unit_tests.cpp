@@ -1,6 +1,7 @@
 #include "test_framework.h"
 #include "http/Handlers.h"
 #include "http/ServerApp.h"
+#include "http/RequestOutgoming.h"
 #include <fstream>
 #include <filesystem>
 
@@ -20,8 +21,7 @@ TEST(FileContent_Serves_File_And_ContentType) {
     http::ServerApp app(18100);
     http::FileContent handler(app);
 
-    std::string r;
-    http::Request req(std::move(r));
+    http::RequestOutgoming req;
     std::string path = "/" + filename;
     req.set_path(path);
     auto resp = handler.handle(req);
@@ -29,8 +29,8 @@ TEST(FileContent_Serves_File_And_ContentType) {
     ASSERT_EQ(resp.code, 200);
     ASSERT_EQ(resp.body, payload);
     bool has_ct = false;
-    for (auto& h : resp.headers)
-        if (h.find("Content-Type: ") == 0)
+    for (auto& h : resp.get_headers())
+        if (h.first == "Content-Type")
             has_ct = true;
     ASSERT_TRUE(has_ct);
 }
@@ -40,15 +40,14 @@ TEST(Redirect_Sets_Location_Header) {
     http::ServerApp app(18101);
     http::Redirect handler(app, target);
 
-    std::string r;
-    http::Request req(std::move(r));
+    http::RequestOutgoming req;
     req.set_path("/whatever");
     auto resp = handler.handle(req);
 
     ASSERT_EQ(resp.code, 301);
     bool has_loc = false;
-    for (auto& h : resp.headers){
-        if (h == ("Location: " + target)) {
+    for (auto& h : resp.get_headers()){
+        if (h.first == "Location" && h.second == target) {
             has_loc = true;
             break;
         }
