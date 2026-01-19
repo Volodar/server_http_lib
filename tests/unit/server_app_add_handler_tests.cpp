@@ -9,7 +9,7 @@ static unsigned short kSrvAppUnitPort3 = 18086;
 class FallbackHandler : public http::RequestHandler {
 public:
     using http::RequestHandler::RequestHandler;
-    http::Response handle(const http::Request&) override { return http::Response(200, "fallback"); }
+    http::Response handle(const http::RequestIncoming&) override { return http::Response(200, "fallback"); }
 };
 
 TEST(ServerApp_AddHandler_Fallback) {

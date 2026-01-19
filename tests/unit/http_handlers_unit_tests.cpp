@@ -21,9 +21,8 @@ TEST(FileContent_Serves_File_And_ContentType) {
     http::ServerApp app(18100);
     http::FileContent handler(app);
 
-    http::RequestOutgoming req;
-    std::string path = "/" + filename;
-    req.set_path(path);
+    std::string h = "GET /" + filename + " HTTP/1.1\r\n\r\n";
+    http::RequestIncoming req(std::move(h));
     auto resp = handler.handle(req);
 
     ASSERT_EQ(resp.code, 200);
@@ -40,8 +39,8 @@ TEST(Redirect_Sets_Location_Header) {
     http::ServerApp app(18101);
     http::Redirect handler(app, target);
 
-    http::RequestOutgoming req;
-    req.set_path("/whatever");
+    std::string h = "GET /whatever HTTP/1.1\r\n\r\n";
+    http::RequestIncoming req(std::move(h));
     auto resp = handler.handle(req);
 
     ASSERT_EQ(resp.code, 301);

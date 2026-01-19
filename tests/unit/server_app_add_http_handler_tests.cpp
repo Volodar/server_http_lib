@@ -14,7 +14,7 @@ class PongHandler : public http::RequestHandler {
 public:
     PongHandler(http::ServerApp& app, std::string msg)
     : http::RequestHandler(app), _msg(std::move(msg)) {}
-    http::Response handle(const http::Request&) override {
+    http::Response handle(const http::RequestIncoming&) override {
         return http::Response(200, _msg);
     }
 private:
@@ -27,7 +27,7 @@ public:
     : http::RequestHandler(app), _flag(flag) {
         set_sequire([this](const http::Request&){ _flag = true; return http::ResponseNone; });
     }
-    http::Response handle(const http::Request&) override { return http::Response(200, "ok"); }
+    http::Response handle(const http::RequestIncoming&) override { return http::Response(200, "ok"); }
 private:
     bool& _flag;
 };
@@ -35,7 +35,7 @@ private:
 class EchoHandler : public http::RequestHandler {
 public:
     EchoHandler(http::ServerApp& app):http::RequestHandler(app){}
-    http::Response handle(const http::Request& r) override {
+    http::Response handle(const http::RequestIncoming& r) override {
         return http::Response(200, std::string(r.get_data()));
     }
 };
@@ -43,7 +43,7 @@ public:
 class DefaultHandler : public http::RequestHandler {
 public:
     DefaultHandler(http::ServerApp& app):http::RequestHandler(app){}
-    http::Response handle(const http::Request& r) override {
+    http::Response handle(const http::RequestIncoming& r) override {
         return http::Response(200, "default");
     }
 };
