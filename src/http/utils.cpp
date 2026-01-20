@@ -71,6 +71,12 @@ Json::Value read_json_from_string(const std::string& string)
     return json;
 }
 
+std::string write_json_to_string(const Json::Value& value){
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    return Json::writeString(builder, value);
+}
+
 void replace(std::string& str, const std::string& from, const std::string& to) {
     if (from.empty())
         return;

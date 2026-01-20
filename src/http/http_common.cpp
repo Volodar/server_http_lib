@@ -163,71 +163,183 @@ Response request(const Url &url, http::Method method, const Data &data) {
     r.set_data(std::string(data.data));
     return request(url, r);
 }
+struct ParsedHeader {
+    std::string leftover;
+    std::size_t content_length = 0;
+    bool chunked = false;
+};
 
-std::pair<std::string, size_t> parse_response_header(Response& response, std::string_view header){
-    std::size_t sp1 = header.find(' ');
-    std::size_t sp2 = (sp1 == std::string::npos)
-                          ? std::string::npos
-                          : header.find(' ', sp1 + 1);
+static inline bool ieq_prefix(const char* s, std::size_t n, const char* lit) {
+    // case-insensitive prefix compare for ASCII
+    for (std::size_t i = 0; lit[i] && i < n; ++i) {
+        char a = s[i];
+        char b = lit[i];
+        if (a >= 'A' && a <= 'Z') a += 32;
+        if (b >= 'A' && b <= 'Z') b += 32;
+        if (a != b) return false;
+    }
+    return true;
+}
+
+template <class Socket>
+static bool read_more(Socket& socket, std::string& stash, std::array<char, 4096>& buf) {
+    asio::error_code ec;
+    std::size_t n = socket.read_some(asio::buffer(buf.data(), buf.size()), ec);
+    if (n > 0) stash.append(buf.data(), n);
+    if (ec) return false; // eof or error
+    return true;
+}
+
+static bool try_get_line(std::string& stash, std::string& line) {
+    std::size_t pos = stash.find("\r\n");
+    if (pos == std::string::npos) return false;
+    line.assign(stash.data(), pos);
+    stash.erase(0, pos + 2);
+    return true;
+}
+
+static bool parse_hex_size_line(const std::string& line, std::size_t& out_size) {
+    // chunk-size [; extensions]
+    std::size_t i = 0;
+    while (i < line.size() && (line[i] == ' ' || line[i] == '\t')) ++i;
+
+    std::size_t val = 0;
+    bool any = false;
+    for (; i < line.size(); ++i) {
+        char c = line[i];
+        if (c == ';') break;
+        int d = -1;
+        if (c >= '0' && c <= '9') d = c - '0';
+        else if (c >= 'a' && c <= 'f') d = 10 + (c - 'a');
+        else if (c >= 'A' && c <= 'F') d = 10 + (c - 'A');
+        else if (c == ' ' || c == '\t') continue;
+        else return false;
+        any = true;
+        val = (val << 4) + std::size_t(d);
+    }
+    if (!any) return false;
+    out_size = val;
+    return true;
+}
+
+template <class Socket>
+static void read_response_body_chunked(Response& response,
+                                      std::string stash,
+                                      Socket& socket,
+                                      std::array<char, 4096>& buf) {
+    response.body.clear();
+
+    for (;;) {
+        // 1) read chunk-size line
+        std::string line;
+        while (!try_get_line(stash, line)) {
+            if (!read_more(socket, stash, buf)) return; // connection closed/error
+        }
+
+        std::size_t chunk_size = 0;
+        if (!parse_hex_size_line(line, chunk_size)) {
+            return; // malformed
+        }
+
+        if (chunk_size == 0) {
+            // 2) read trailers until CRLF CRLF (optional). We can just consume them and stop.
+            // Need an empty line that ends trailers: a line == ""
+            for (;;) {
+                while (!try_get_line(stash, line)) {
+                    if (!read_more(socket, stash, buf)) break;
+                }
+                if (line.empty()) break;
+            }
+            return;
+        }
+
+        // 3) ensure we have chunk_size + CRLF
+        while (stash.size() < chunk_size + 2) {
+            if (!read_more(socket, stash, buf)) return;
+        }
+
+        response.body.append(stash.data(), chunk_size);
+        stash.erase(0, chunk_size);
+
+        // 4) consume CRLF after data
+        if (stash.size() < 2) {
+            while (stash.size() < 2) {
+                if (!read_more(socket, stash, buf)) return;
+            }
+        }
+        if (!(stash[0] == '\r' && stash[1] == '\n')) {
+            return; // malformed
+        }
+        stash.erase(0, 2);
+    }
+}
+
+ParsedHeader parse_response_header(Response& response, const std::string& raw) {
+    ParsedHeader out{};
+
+    // split headers / leftover by \r\n\r\n
+    std::size_t header_end = raw.find("\r\n\r\n");
+    std::size_t headers_len = (header_end == std::string::npos) ? raw.size() : (header_end + 4);
+
+    if (raw.size() > headers_len) {
+        out.leftover.assign(raw.data() + headers_len, raw.size() - headers_len);
+    }
+
+    // status line
+    std::size_t line0_end = raw.find("\r\n");
+    std::string_view status = (line0_end == std::string::npos)
+        ? std::string_view(raw)
+        : std::string_view(raw.data(), line0_end);
+
+    std::size_t sp1 = status.find(' ');
+    std::size_t sp2 = (sp1 == std::string_view::npos) ? std::string_view::npos : status.find(' ', sp1 + 1);
     unsigned code = 0;
-    if (sp1 != std::string::npos && sp2 != std::string::npos) {
+    if (sp1 != std::string_view::npos && sp2 != std::string_view::npos) {
         for (std::size_t i = sp1 + 1; i < sp2; ++i) {
-            char c = header[i];
-            if (c >= '0' && c <= '9') {
-                code = code * 10 + (c - '0');
-            } else
-                break;
+            char c = status[i];
+            if (c >= '0' && c <= '9') code = code * 10 + (c - '0');
+            else break;
         }
     }
     response.code = code;
-    // Content-Length
-    std::size_t content_length = 0;
-    std::size_t line_start = header.find("\r\n");
-    if (line_start != std::string::npos)
-        line_start += 2;
-    
-    size_t header_size = header.size();
-    size_t header_end = 0;
-    while (line_start < header_size) {
-        std::size_t line_end = header.find("\r\n", line_start);
-        if (line_end == std::string::npos || line_end > header_size)
-            break;
+
+    // iterate header lines
+    std::size_t line_start = (line0_end == std::string::npos) ? raw.size() : (line0_end + 2);
+    while (line_start < headers_len) {
+        std::size_t line_end = raw.find("\r\n", line_start);
+        if (line_end == std::string::npos || line_end > headers_len) break;
         std::size_t len = line_end - line_start;
-        const char *ls = header.data() + line_start;
-        static const char kcl[] = "content-length:";
-        bool is_cl = content_length == 0 && len >= sizeof(kcl) - 1;
-        if (is_cl) {
-            for (size_t i = 0; i < sizeof(kcl) - 1; ++i) {
-                char a = ls[i];
-                if (a >= 'A' && a <= 'Z')
-                    a += 32;
-                if (a != kcl[i]) {
-                    is_cl = false;
-                    break;
-                }
-            }
-        }
-        if (is_cl) {
-            std::size_t i = sizeof(kcl) - 1;
-            while (i < len && (ls[i] == ' ' || ls[i] == '\t'))
-                ++i;
+        const char* ls = raw.data() + line_start;
+
+        // Content-Length:
+        if (out.content_length == 0 && len >= 15 && ieq_prefix(ls, len, "content-length:")) {
+            std::size_t i = 15;
+            while (i < len && (ls[i] == ' ' || ls[i] == '\t')) ++i;
             std::size_t val = 0;
             while (i < len && ls[i] >= '0' && ls[i] <= '9') {
                 val = val * 10 + (ls[i] - '0');
                 ++i;
             }
-            content_length = val;
+            out.content_length = val;
         }
+
+        // Transfer-Encoding:
+        if (len >= 18 && ieq_prefix(ls, len, "transfer-encoding:")) {
+            // very simple contains("chunked") (case-insensitive)
+            for (std::size_t i = 18; i + 6 < len; ++i) {
+                char c0 = ls[i+0], c1 = ls[i+1], c2 = ls[i+2], c3 = ls[i+3], c4 = ls[i+4], c5 = ls[i+5], c6 = ls[i+6];
+                auto low = [](char x){ return (x >= 'A' && x <= 'Z') ? char(x + 32) : x; };
+                if (low(c0)=='c' && low(c1)=='h' && low(c2)=='u' && low(c3)=='n' && low(c4)=='k' && low(c5)=='e' && low(c6)=='d') {
+                    out.chunked = true;
+                    break;
+                }
+            }
+        }
+
         line_start = line_end + 2;
-        header_end = line_start;
     }
-    
-    std::string leftover;
-    if (header.size() > header_end) {
-        leftover.assign(header.data() + header_end,
-                        header.size() - header_end);
-    }
-    return {leftover, content_length};
+
+    return out;
 }
 
 template <class Socket>
@@ -252,14 +364,27 @@ std::string read_response_header(Socket& socket, std::array<char, 4096>& buf){
 }
 
 template <class Socket>
-void read_response_body(Response& response, size_t content_length, const std::string& leftover, Socket& socket, std::array<char, 4096>& buf){
+void read_response_body(Response& response,
+                        std::size_t content_length,
+                        bool chunked,
+                        const std::string& leftover,
+                        Socket& socket,
+                        std::array<char, 4096>& buf) {
+
+    if (chunked) {
+        read_response_body_chunked(response, leftover, socket, buf);
+        return;
+    }
+
     if (content_length > 0) {
+        response.body.clear();
         response.body.reserve(content_length);
+
         if (!leftover.empty()) {
-            response.body.append(
-                leftover.data(),
-                std::min(leftover.size(), content_length));
+            response.body.append(leftover.data(),
+                                 std::min(leftover.size(), content_length));
         }
+
         while (response.body.size() < content_length) {
             asio::error_code ec2;
             std::size_t n = socket.read_some(asio::buffer(buf.data(), buf.size()), ec2);
@@ -267,20 +392,19 @@ void read_response_body(Response& response, size_t content_length, const std::st
                 std::size_t need = content_length - response.body.size();
                 response.body.append(buf.data(), std::min(need, n));
             }
-            if (ec2)
-                break;
+            if (ec2) break;
         }
-    } else {
-        if (!leftover.empty())
-            response.body.append(leftover);
-        for (;;) {
-            asio::error_code ec2;
-            std::size_t n = socket.read_some(asio::buffer(buf), ec2);
-            if (n > 0)
-                response.body.append(buf.data(), n);
-            if (ec2)
-                break;
-        }
+        return;
+    }
+
+    // no CL, not chunked: read to EOF
+    response.body.clear();
+    if (!leftover.empty()) response.body.append(leftover);
+    for (;;) {
+        asio::error_code ec2;
+        std::size_t n = socket.read_some(asio::buffer(buf), ec2);
+        if (n > 0) response.body.append(buf.data(), n);
+        if (ec2) break;
     }
 }
 
@@ -354,9 +478,9 @@ Response request(const Url &url, RequestOutgoming &request) {
             asio::write(socket, asio::buffer(req));
 
             std::array<char, 4096> buf;
-            auto header = read_response_header(socket, buf);
-            auto [leftover, content_length] = parse_response_header(result, header);
-            read_response_body(result, content_length, leftover, socket, buf);
+            auto header_raw = read_response_header(socket, buf);
+            auto ph = parse_response_header(result, header_raw);
+            read_response_body(result, ph.content_length, ph.chunked, ph.leftover, socket, buf);
         } else {
             asio::ssl::context ctx(asio::ssl::context::tlsv12_client);
             asio::ssl::stream<asio::ip::tcp::socket> socket(io_service, ctx);
@@ -367,9 +491,9 @@ Response request(const Url &url, RequestOutgoming &request) {
             asio::write(socket, asio::buffer(req));
 
             std::array<char, 4096> buf;
-            auto header = read_response_header(socket, buf);
-            auto [leftover, content_length] = parse_response_header(result, header);
-            read_response_body(result, content_length, leftover, socket, buf);
+            auto header_raw = read_response_header(socket, buf);
+            auto ph = parse_response_header(result, header_raw);
+            read_response_body(result, ph.content_length, ph.chunked, ph.leftover, socket, buf);
         }
     } catch (std::exception &e) {
         log_error << "Error: " << e.what() << " URL: " << url.host << ":"

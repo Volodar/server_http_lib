@@ -68,6 +68,7 @@ std::string_view get_file_ext(const std::string_view &path);
 std::string get_content_type(const std::string_view &path);
 
 Json::Value read_json_from_string(const std::string& string);
+std::string write_json_to_string(const Json::Value& value);
 
 void replace(std::string& str, const std::string& from, const std::string& to);
 void replace(std::string& str, char from, char to);
