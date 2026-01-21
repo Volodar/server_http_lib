@@ -22,21 +22,15 @@ class LRUCache {
 public:
     using Clock = std::chrono::steady_clock;
 
-    // capacity_mb: total cache capacity in MB
     explicit LRUCache(std::size_t capacity_mb);
-    // Insert or update a value with TTL. ttl_ms == 0 means no expiration.
     void set(const std::string& key, const std::string& value, std::chrono::milliseconds ttl_ms = std::chrono::seconds(300));
-    // Get value by key. Returns nullopt if missing or expired.
     std::optional<std::string> get(const std::string& key);
-    // Remaining TTL for a key. nullopt if missing or no-expire, or expired (and key removed).
     std::optional<std::chrono::milliseconds> ttl_left(const std::string& key);
     bool contains(const std::string& key);
     bool erase(const std::string& key);
     void clear();
 
-    // Manually remove expired entries.
     void prune();
-    // Unsafe variant; caller must hold mutex_.
     void prune_unlocked();
     std::size_t used_bytes() const;
     std::size_t capacity_bytes() const;
@@ -48,7 +42,7 @@ private:
         std::string value;
         std::size_t key_size{0};
         std::size_t value_size{0};
-        Clock::time_point expire_at; // no-expire sentinel when equal to no_expire_time()
+        Clock::time_point expire_at;
     };
 
     struct Node {
@@ -66,10 +60,8 @@ private:
 
     void evict_over_capacity();
 
-    // Erase using map iterator only (finds LRU iterator)
     void erase_it(typename std::unordered_map<std::string, Node>::iterator map_it);
 
-    // Erase using both iterators to avoid second lookup
     void erase_it(typename std::unordered_map<std::string, Node>::iterator map_it, std::list<std::string>::iterator lru_it);
 
 private:

@@ -12,6 +12,7 @@
 #include "http/Server.h"
 #include <list>
 #include <memory>
+#include "LRUCache.h"
 
 #if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
 #include "http/mysql_wrapper.h"
@@ -40,6 +41,9 @@ class ServerApp {
     ServerApp(int http_port, int https_port, asio::ssl::context *ssl_ctx);
     void connect_mysql();
     void run(int num_threads = -1);
+    
+    void set_lru_cache(size_t capacity_mb);
+    std::shared_ptr<LRUCache> get_lru_cache();
 
     asio::io_context &get_context() { return _context; };
 
@@ -85,6 +89,7 @@ class ServerApp {
 #endif
     std::shared_ptr<Server> _http_server;
     std::shared_ptr<Scheduler> _scheduler;
+    std::shared_ptr<LRUCache> _lru_cache;
 
     std::list<std::shared_ptr<RequestHandler>> _request_handlers;
 };

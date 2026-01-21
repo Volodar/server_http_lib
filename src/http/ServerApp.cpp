@@ -62,4 +62,11 @@ void ServerApp::run(int num_threads) {
     _context.run();
 }
 
+void ServerApp::set_lru_cache(size_t capacity_mb){
+    _lru_cache = std::make_shared<LRUCache>(capacity_mb);
+}
+std::shared_ptr<LRUCache> ServerApp::get_lru_cache(){
+    return _lru_cache;
+}
+
 } // namespace http
