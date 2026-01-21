@@ -17,11 +17,12 @@ RequestIncoming::RequestIncoming(std::string&& header)
 }
 
 std::string_view RequestIncoming::get(std::string_view name, bool require) const {
+    static std::string empty;
     auto iter = _params.find(name);
-    if(iter == _params.end()){
+    if(iter == _params.end() && require){
         throw ResponseException(400, "Parameter " + std::string(name) + " is missing.");
     }
-    return iter->second;
+    return iter != _params.end() ? iter->second : empty;
 }
 
 void RequestIncoming::parse_header() {
