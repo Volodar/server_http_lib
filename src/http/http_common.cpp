@@ -114,6 +114,11 @@ Response::Response(int code, const std::string& body) {
     this->code = code;
     this->body = body;
 }
+Response::Response(int code_, std::string&& body_)
+: code(code_)
+, body(std::move(body_)) {
+    
+}
 void Response::add_header(const std::string& name, const std::string& value) {
     if(name == "Content-Length")
         return;

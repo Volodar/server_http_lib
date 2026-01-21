@@ -73,6 +73,7 @@ class Response {
   public:
     Response();
     Response(int code, const std::string& body = "");
+    Response(int code, std::string&& body);
     void add_header(const std::string& name, const std::string& value);
     void add_header_content_type(const std::string& type);
 
