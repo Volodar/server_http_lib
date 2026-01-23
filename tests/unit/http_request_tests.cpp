@@ -37,3 +37,37 @@ TEST(HttpMethod_Conversions) {
     ASSERT_EQ(http::methodToStr(http::Method::put), std::string("PUT"));
 }
 
+TEST(HttpRequestSendGetAndPost) {
+    asio::io_context io;
+    http::Server server(io, 18083);
+
+    server.add_endpoint("/some_path", http::Method::get, [](const http::Request& r){
+        return http::Response(200, "Get Ok");
+    });
+    server.add_endpoint("/some_path", http::Method::post, [](const http::Request& r){
+        return http::Response(200, "Post Ok");
+    });
+    std::thread t([&](){ server.run(1); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    try{
+        
+        auto r = http::get("localhost", "18083", "/some_path", "", {});
+        ASSERT_EQ(r.code, 200);
+        ASSERT_EQ(r.body, std::string("Get Ok"));
+        
+        r = http::post("localhost", "18083", "/some_path", "", {});
+        ASSERT_EQ(r.code, 200);
+        ASSERT_EQ(r.body, std::string("Post Ok"));
+        
+        io.stop();
+        if (t.joinable())
+            t.join();
+    } catch(const std::exception& e){
+        io.stop();
+        if (t.joinable())
+            t.join();
+        throw;
+    }
+}
+

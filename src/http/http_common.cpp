@@ -437,14 +437,14 @@ Response send(Method method, const char* host, const char* port, const char* pat
     http::Url url;
     url.host = host;
     url.port = std::atoi(port);
-    url.endpoint = "/send_notification";
+    url.endpoint = path;
 
     http::RequestOutgoming request;
     for(auto&& [k, v] : headers){
         request.add_header(k, v);
     }
     request.set_data(std::move(body));
-    request.set_method(http::Method::post);
+    request.set_method(method);
     return http::request(url, request);
 }
 Response post(const char* host, const char* port, const char* path, std::string&& body, const std::vector<std::pair<std::string, std::string>>& headers){
