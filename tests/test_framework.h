@@ -37,11 +37,18 @@ struct AssertFailure : public std::runtime_error {
     static ::tinytest::Registrar reg_##name(#name, name); \
     static void name()
 
-#define ASSERT_TRUE(x) do { if(!(x)) throw ::tinytest::AssertFailure(std::string("ASSERT_TRUE failed: ") + #x); } while(0)
-#define ASSERT_FALSE(x) do { if((x)) throw ::tinytest::AssertFailure(std::string("ASSERT_FALSE failed: ") + #x); } while(0)
+#define ASSERT_TRUE(x) do { if(!(x)) { \
+  std::ostringstream _oss; _oss << "ASSERT_TRUE failed: " << #x " | L: " << __LINE__; \
+  throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
+
+#define ASSERT_FALSE(x) do { if((x)) { \
+  std::ostringstream _oss; _oss << "ASSERT_FALSE failed: " << #x " | L: " << __LINE__; \
+  throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
+
 #define ASSERT_EQ(a,b) do { if(!((a)==(b))) { \
   std::ostringstream _oss; _oss << "ASSERT_EQ failed: " << #a << " == " << #b <<"("<<(a)<<"!="<<(b)<< ") | L: " << __LINE__; \
   throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
+
 #define ASSERT_NE(a,b) do { if(!((a)!=(b))) { \
   std::ostringstream _oss; _oss << "ASSERT_NE failed: " << #a << " != " << #b <<"("<<(a)<<"=="<<(b)<< ") | L: " << __LINE__; \
   throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
