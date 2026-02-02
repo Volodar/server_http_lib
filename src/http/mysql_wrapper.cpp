@@ -65,6 +65,7 @@ bool MysqlWrapper::test_connection(const std::string& host,
         result = true;
         delete conn;
     } catch (sql::SQLException &e) {
+        log_debug << e.what();
     }
     return result;
 }
