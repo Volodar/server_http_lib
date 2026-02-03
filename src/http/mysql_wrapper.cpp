@@ -124,6 +124,7 @@ void MysqlWrapper::reconnect() {
 
 void MysqlWrapper::set_schema(const std::string& schema) {
     try {
+        query("CREATE SCHEMA IF NOT EXISTS " + schema);
         _schema = schema;
         for (auto &connection : _connections)
             connection->setSchema(schema);
