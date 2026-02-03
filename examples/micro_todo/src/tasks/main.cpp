@@ -4,14 +4,12 @@
 
 using namespace http;
 
-namespace {
+
 class GetTasks : public RequestHandler {
   public:
     explicit GetTasks(ServerApp &app) : RequestHandler(app) {}
-    Response handle(const Request &) override {
-      Response r(200,
-                 "{\"tasks\":[{\"id\":1,\"title\":\"Buy milk\"},{\"id\":2,\"title\":\"Write code\"}]}"
-      );
+    Response handle(const RequestIncoming &) override {
+      Response r(200, R"({"tasks":[{"id":1,"title":"Buy milk"},{"id":2,"title":"Write code"}]})");
       r.add_header_content_type("application/json");
       return r;
     }
@@ -20,16 +18,15 @@ class GetTasks : public RequestHandler {
 class CreateTask : public RequestHandler {
   public:
     explicit CreateTask(ServerApp &app) : RequestHandler(app) {}
-    Response handle(const Request &req) override {
-      std::string posted = std::string(req.get_data());
-      std::string body = std::string("{\"created\":true,\"data\":") +
-                         (posted.empty() ? "{}" : posted) + "}";
-      Response r(200, body);
+    Response handle(const RequestIncoming &req) override {
+      std::string posted(req.get_data());
+      std::string body = std::string(R"({"created":true,"data":)") + (posted.empty() ? "{}" : posted) + "}";
+      Response r(200, std::move(body));
       r.add_header_content_type("application/json");
       return r;
     }
 };
-} // namespace
+
 
 int main() {
   http::ServerApp app(micro_todo::PORT_TASKS);

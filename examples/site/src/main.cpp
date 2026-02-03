@@ -23,7 +23,7 @@ public:
 class DbHealth : public http::RequestHandler {
 public:
     using http::RequestHandler::RequestHandler;
-    virtual http::Response handle(const http::Request &request) override {
+    virtual http::Response handle(const http::RequestIncoming &request) override {
         auto mysql = _app.get_mysql();
         if (!mysql) {
             return http::Response(503, "mysql not initialized\n");
@@ -47,7 +47,7 @@ public:
 class DbTime : public http::RequestHandler {
 public:
     using http::RequestHandler::RequestHandler;
-    virtual http::Response handle(const http::Request &request) override {
+    virtual http::Response handle(const http::RequestIncoming &request) override {
         auto mysql = _app.get_mysql();
         if (!mysql) {
             return http::Response(503, "mysql not initialized\n");
@@ -74,14 +74,14 @@ public:
 class DbHealth : public http::RequestHandler {
 public:
     using http::RequestHandler::RequestHandler;
-    virtual http::Response handle(const http::Request &request) override {
+    virtual http::Response handle(const http::RequestIncoming &request) override {
         return http::Response(503, "mysql disabled at build time\n");
     }
 };
 class DbTime : public http::RequestHandler {
 public:
     using http::RequestHandler::RequestHandler;
-    virtual http::Response handle(const http::Request &request) override {
+    virtual http::Response handle(const http::RequestIncoming &request) override {
         return http::Response(503, "mysql disabled at build time\n");
     }
 };

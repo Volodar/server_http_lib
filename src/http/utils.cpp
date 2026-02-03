@@ -116,6 +116,7 @@ template <> std::string to_string(const long double &value) {
 }
 template <> std::string to_string(const std::string& value) { return value; }
 template <> std::string to_string(const std::string_view& value) { return std::string(value); }
+std::string to_string(const char* value) { return std::string(value); }
 
 std::string format(const std::string& template_str, const std::unordered_map<std::string, std::string> &values) {
     std::string result = template_str;

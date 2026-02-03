@@ -74,6 +74,7 @@ void replace(std::string& str, const std::string& from, const std::string& to);
 void replace(std::string& str, char from, char to);
 
 template <typename T> std::string to_string(const T &value);
+std::string to_string(const char* value);
 
 std::string format(const std::string& template_str,
                    const std::unordered_map<std::string, std::string> &values);

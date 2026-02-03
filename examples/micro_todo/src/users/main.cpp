@@ -4,14 +4,12 @@
 
 using namespace http;
 
-namespace {
+
 class GetUsers : public RequestHandler {
   public:
     explicit GetUsers(ServerApp &app) : RequestHandler(app) {}
-    Response handle(const Request &) override {
-      Response r(200,
-                 "{\"users\":[{\"id\":1,\"name\":\"Alice\"},{\"id\":2,\"name\":\"Bob\"}]}"
-      );
+    Response handle(const RequestIncoming &) override {
+      Response r(200, R"({"users":[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]})");
       r.add_header_content_type("application/json");
       return r;
     }
@@ -20,17 +18,14 @@ class GetUsers : public RequestHandler {
 class CreateUser : public RequestHandler {
   public:
     explicit CreateUser(ServerApp &app) : RequestHandler(app) {}
-    Response handle(const Request &req) override {
-      // Echo stub with posted data
+    Response handle(const RequestIncoming &req) override {
       std::string posted = std::string(req.get_data());
-      std::string body = std::string("{\"created\":true,\"data\":") +
-                         (posted.empty() ? "{}" : posted) + "}";
-      Response r(200, body);
+      std::string body = std::string(R"({"created":true,"data":)") + (posted.empty() ? "{}" : posted) + "}";
+      Response r(200, std::move(body));
       r.add_header_content_type("application/json");
       return r;
     }
 };
-} // namespace
 
 int main() {
   http::ServerApp app(micro_todo::PORT_USERS);
