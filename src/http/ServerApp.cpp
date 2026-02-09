@@ -41,15 +41,12 @@ void ServerApp::connect_mysql() {
     auto mysql_password = std::getenv("MYSQL_PASSWORD");
 
     if (mysql_host && mysql_user && mysql_password) {
-        while (!MysqlWrapper::test_connection(mysql_host, mysql_user,
-                                              mysql_password)) {
+        while (!MysqlWrapper::test_connection(mysql_host, mysql_user, mysql_password)) {
             log_error << "Mysql data base connection not ready. wait 1 seconds and repeat...";
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
 
-        _mysql->connect(mysql_host, mysql_user, mysql_password);
-        if (mysql_database != nullptr)
-            _mysql->set_schema(mysql_database);
+        _mysql->connect(mysql_host, mysql_user, mysql_password, mysql_database ? mysql_database : "");
     } else {
         log_error << "Skip connect tp MySql: env is empty";
     }

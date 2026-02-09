@@ -27,6 +27,7 @@ set_target_properties(http PROPERTIES FOLDER libs)
 
 target_include_directories(http PUBLIC
   $<BUILD_INTERFACE:${_HTTP_ROOT}>
+  /usr/local/include
 )
 
 #[[ Dependencies ]]
@@ -46,6 +47,12 @@ target_link_libraries(http PUBLIC
   OpenSSL::SSL
   OpenSSL::Crypto
 )
+
+find_library(PQXX_LIBRARY NAMES pqxx libpqxx PATHS /usr/local/lib)
+find_library(PQ_LIBRARY NAMES pq libpq PATHS /usr/local/lib /usr/local/lib/postgresql@14)
+if(PQXX_LIBRARY AND PQ_LIBRARY)
+  target_link_libraries(http PUBLIC ${PQXX_LIBRARY} ${PQ_LIBRARY})
+endif()
 
 if(SERVER_WEB_WITH_MYSQL)
   include("${_HTTP_ROOT}/cmake/mysqlconnector.cmake")

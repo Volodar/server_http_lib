@@ -17,5 +17,6 @@
 #include "http/utils.h"
 #include "http/RequestOutgoming.h"
 #include "http/RequestIncoming.h"
+#include "http/sql.h"
 
 #endif /* http_hpp */

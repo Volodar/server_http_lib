@@ -1,13 +1,13 @@
-#ifndef MYSQL_WRAPPER_H
-#define MYSQL_WRAPPER_H
+#pragma once
 
-#if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
-
-#include "mysql_result.h"
+#include "postresql_result.h"
 #include "sql_wrapper.h"
 
+#include "pqxx/connection"
+#include "pqxx/result"
+#include "pqxx/transaction"
+
 #include <condition_variable>
-#include <cppconn/driver.h>
 #include <deque>
 #include <memory>
 #include <mutex>
@@ -15,42 +15,38 @@
 
 namespace http {
 
-class MysqlWrapper : public SqlWrapperBase {
+class PostresqlWrapper : public SqlWrapperBase {
 public:
-    MysqlWrapper();
-    ~MysqlWrapper();
+    PostresqlWrapper();
+    ~PostresqlWrapper();
     
-    static bool test_connection(const std::string& host, const std::string& login,
-                                const std::string& password);
+    static bool test_connection(const std::string& host,
+                                const std::string& login,
+                                const std::string& password,
+                                const std::string& dbname);
     
     void connect(const std::string& host, const std::string& login,
                  const std::string& password,
-                 const std::string& schema) override;
+                 const std::string& dbname) override;
     void reconnect() override;
     void set_schema(const std::string& schema) override;
     
     bool query(const std::string& query) override;
     std::unique_ptr<SqlResult> query_get(const std::string& query) override;
     
-    std::shared_ptr<sql::Connection> get_connection();
+    std::shared_ptr<pqxx::connection> get_connection();
     
 protected:
-    void release_connection(sql::Connection* conn);
+    void release_connection(pqxx::connection* conn);
     
 private:
-    sql::Driver* _driver;
-    
     std::string _host;
     std::string _user;
     std::string _password;
     std::string _schema;
-    std::deque<sql::Connection*> _connections;
+    std::deque<pqxx::connection*> _connections;
     std::mutex _mutex;
     std::condition_variable _condition;
 };
 
 } // namespace http
-
-#endif
-
-#endif

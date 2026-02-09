@@ -1,7 +1,9 @@
 build/
-build_ci/
+build*/
 build-xcode/
 tests/build*
 examples/*/build*
 AGENTS.md
 tests/assets/integration_test.txt
+build-ninja/
+assets/unit_test.txt
