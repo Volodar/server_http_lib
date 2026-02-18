@@ -13,6 +13,7 @@
 #include <string>
 #include <tuple>
 #include <utility>
+#include "utils.h"
 
 class MysqlWrapper {
   public:
@@ -63,6 +64,9 @@ class MysqlWrapper {
 template <typename T> std::string to_sql_value(const T &value) {
     return std::to_string(value);
 }
+template <typename T> std::string to_sql_raw_value(const T &value) {
+    return std::to_string(value);
+}
 inline std::string to_sql_value(const std::string& value) {
     std::string escaped;
     escaped.reserve(value.size() * 2);
@@ -81,14 +85,69 @@ inline std::string to_sql_value(const std::string& value) {
     }
     return escaped;
 }
+inline std::string to_sql_raw_value(const std::string& value) {
+    return value;
+}
 inline std::string to_sql_value(std::string_view value) {
     return to_sql_value(std::string(value));
+}
+inline std::string to_sql_raw_value(std::string_view value) {
+    return std::string(value);
 }
 inline std::string to_sql_value(const char *value) {
     return to_sql_value(std::string(value));
 }
+inline std::string to_sql_raw_value(const char *value) {
+    return std::string(value);
+}
 inline std::string to_sql_value(char *value) {
     return to_sql_value(std::string(value));
+}
+inline std::string to_sql_raw_value(char *value) {
+    return std::string(value);
+}
+
+inline bool is_inside_sql_string_literal(const std::string& query, size_t pos) {
+    bool in_single_quote = false;
+    bool in_double_quote = false;
+    size_t i = 0;
+    while (i < pos && i < query.size()) {
+        char ch = query[i];
+        if (!in_double_quote && ch == '\'') {
+            if (in_single_quote) {
+                if ((i + 1) < pos && query[i + 1] == '\'') {
+                    i += 2;
+                    continue;
+                }
+                in_single_quote = false;
+                ++i;
+                continue;
+            }
+            in_single_quote = true;
+            ++i;
+            continue;
+        }
+        if (!in_single_quote && ch == '"') {
+            if (in_double_quote) {
+                if ((i + 1) < pos && query[i + 1] == '"') {
+                    i += 2;
+                    continue;
+                }
+                in_double_quote = false;
+                ++i;
+                continue;
+            }
+            in_double_quote = true;
+            ++i;
+            continue;
+        }
+        if (ch == '\\' && (in_single_quote || in_double_quote)) {
+            i += 2;
+            continue;
+        }
+        ++i;
+    }
+    return in_single_quote || in_double_quote;
 }
 
 template <typename... Args>
@@ -100,12 +159,21 @@ std::string build_query(const std::string& template_str, Args &&...args) {
 
     for (int i = arg_count - 1; i >= 0; --i) {
         std::string token = "$" + std::to_string(i);
-        std::string value;
+        std::string escaped_value;
+        std::string raw_value;
 
         std::apply(
             [&](const auto &...unpacked) {
                 int index = 0;
-                ((index++ == i ? value = to_sql_value(unpacked)
+                ((index++ == i ? escaped_value = to_sql_value(unpacked)
+                               : std::string()),
+                 ...);
+            },
+            values);
+        std::apply(
+            [&](const auto &...unpacked) {
+                int index = 0;
+                ((index++ == i ? raw_value = to_sql_raw_value(unpacked)
                                : std::string()),
                  ...);
             },
@@ -114,6 +182,8 @@ std::string build_query(const std::string& template_str, Args &&...args) {
         size_t pos = 0;
         bool was_replace = false;
         while ((pos = query.find(token, pos)) != std::string::npos) {
+            bool quoted_context = is_inside_sql_string_literal(query, pos);
+            const std::string& value = quoted_context ? escaped_value : raw_value;
             query.replace(pos, token.length(), value);
             pos += value.length();
             was_replace = true;
@@ -122,8 +192,7 @@ std::string build_query(const std::string& template_str, Args &&...args) {
         assert(was_replace && "missing placeholder in query");
     }
 
-    assert(query.find("$") == std::string::npos &&
-           "unresolved placeholders remain");
+    assert(query.find("$") == std::string::npos && "unresolved placeholders remain");
     return query;
 }
 

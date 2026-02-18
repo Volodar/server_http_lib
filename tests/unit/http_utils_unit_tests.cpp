@@ -1,5 +1,6 @@
 #include "test_framework.h"
 #include "http/utils.h"
+#include "http/mysql_wrapper.h"
 #include <string>
 #include <vector>
 #include <fstream>
@@ -115,3 +116,29 @@ TEST(Utils_GetFileContent)
     std::remove(path);
 }
 
+#if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
+TEST(Utils_BuildQuery_EscapesInsideQuotedLiteral)
+{
+    auto query = build_query("SELECT * FROM users WHERE login='$0'", std::string("o'reilly"));
+    ASSERT_EQ(query, std::string("SELECT * FROM users WHERE login='o''reilly'"));
+}
+
+TEST(Utils_BuildQuery_AllowsRawSqlFragmentOutsideQuotedLiteral)
+{
+    auto filter = std::string("WHERE COALESCE(c.club_type, 'open')='open'");
+    auto query = build_query("SELECT c.id FROM clubs c $0 ORDER BY c.id DESC", filter);
+    ASSERT_EQ(query, std::string("SELECT c.id FROM clubs c WHERE COALESCE(c.club_type, 'open')='open' ORDER BY c.id DESC"));
+}
+
+TEST(Utils_BuildQuery_MixedQuotedAndRaw)
+{
+    auto filter = build_query("WHERE title LIKE '%%$0%%'", std::string("t"));
+    auto query = build_query("SELECT id FROM clubs $0", filter);
+    ASSERT_EQ(query, std::string("SELECT id FROM clubs WHERE title LIKE '%%t%%'"));
+}
+TEST(Utils_BuildQuery_EmptyStringValue)
+{
+    auto query = build_query(R"(SELECT * FROM users WHERE login='$0' AND user="")", "");
+    ASSERT_EQ(query, std::string(R"(SELECT * FROM users WHERE login='' AND user="")");
+}
+#endif

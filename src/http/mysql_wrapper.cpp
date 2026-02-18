@@ -8,7 +8,6 @@
 #include <thread>
 #include <chrono>
 #include "Log.h"
-#include "utils.h"
 
 enum class MySqlErrorCode : int {
     // Общие ошибки
