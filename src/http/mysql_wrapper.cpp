@@ -8,6 +8,7 @@
 #include <thread>
 #include <chrono>
 #include "Log.h"
+#include "utils.h"
 
 enum class MySqlErrorCode : int {
     // Общие ошибки
@@ -178,8 +179,8 @@ void MysqlWrapper::alter_table_add_column(const std::string& schema,
         if (result->getInt(1) > 0)
             return;
     }
-    auto source = build_query("ALTER TABLE $0.$1 ADD COLUMN $2 $3;", schema,
-                              table, column, column_type);
+    auto source = build_query("ALTER TABLE $0.$1 ADD COLUMN $2 $3;", schema, table, column, column_type);
+    http::replace(source, "\\\"", "\"");
     this->query(source);
 }
 
@@ -203,6 +204,7 @@ void MysqlWrapper::alter_table_change_column(const std::string& schema,
         }
     }
     auto source = build_query("ALTER TABLE $0.$1 MODIFY COLUMN $2 $3", schema, table, column, column_type);
+    http::replace(source, "\\\"", "\"");
     this->query(source);
 }
 
@@ -225,8 +227,7 @@ void MysqlWrapper::create_index(const std::string& schema,
 
     query = source;
     if (query.empty())
-        query = build_query("CREATE INDEX idx_$2 ON $0.$1 ($2);", schema, table,
-                            index);
+        query = build_query("CREATE INDEX idx_$2 ON $0.$1 ($2);", schema, table, index);
     this->query(query);
 }
 
