@@ -8,12 +8,17 @@
 #include <cppconn/driver.h>
 #include <cppconn/resultset.h>
 #include <memory>
+#include <atomic>
 #include <queue>
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
 #include "utils.h"
+
+namespace sql {
+class SQLException;
+}
 
 class MysqlWrapper {
   public:
@@ -47,16 +52,23 @@ class MysqlWrapper {
     std::shared_ptr<sql::Connection> get_connection();
 
   protected:
-    void release_connection(sql::Connection *conn);
+    void release_connection(sql::Connection *conn, uint64_t generation);
+    bool should_retry(const sql::SQLException& e) const;
 
   private:
+    struct PooledConnection {
+        sql::Connection *connection = nullptr;
+        uint64_t generation = 0;
+    };
+
     sql::Driver *_driver;
 
     std::string _host;
     std::string _user;
     std::string _password;
     std::string _schema;
-    std::deque<sql::Connection *> _connections;
+    std::deque<PooledConnection> _connections;
+    std::atomic<uint64_t> _generation{1};
     std::mutex _mutex;
     std::condition_variable _condition;
 };

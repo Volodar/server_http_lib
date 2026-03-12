@@ -31,6 +31,7 @@ enum class MySqlErrorCode : int {
     ColumnDoesNotExist = 1054,  // Unknown column
     DuplicateEntry = 1062,      // Duplicate entry for key
     TruncatedWrongValue = 1366, // Incorrect value for column
+    InactivityTimeout = 4031,   // Client disconnected due to inactivity
 
     // Ошибки транзакций
     ReadOnlyTransaction = 1290, // Read-only mode
@@ -49,8 +50,8 @@ MysqlWrapper::MysqlWrapper() : _driver(nullptr) {}
 MysqlWrapper::~MysqlWrapper() {
     std::unique_lock<std::mutex> lock(_mutex);
     while (!_connections.empty()) {
-        sql::Connection *conn = _connections.front();
-        _connections.pop_back();
+        sql::Connection *conn = _connections.front().connection;
+        _connections.pop_front();
         delete conn;
     }
 }
@@ -86,16 +87,15 @@ void MysqlWrapper::connect(const std::string& host, const std::string& login,
         }
         
         log_info << "Count mysql connections=" << count;
+        auto generation = _generation.load(std::memory_order_acquire);
         for (int i = 0; i < count; ++i) {
             try {
-                // Создаем соединение
                 sql::Connection *conn = _driver->connect(host, login, password);
-                _connections.push_back(conn);
+                _connections.push_back({conn, generation});
             } catch (sql::SQLException &e) {
                 log_error << "Error on connection to mysql: " << e.what();
             }
         }
-        // Разбудим возможных ожидающих, если удалось создать соединения
         _condition.notify_all();
     } catch (const sql::SQLException &e) {
         log_error << "SQLException: " << e.what();
@@ -106,16 +106,20 @@ void MysqlWrapper::connect(const std::string& host, const std::string& login,
 void MysqlWrapper::reconnect() {
     std::unique_lock<std::mutex> lock(_mutex);
     log_error << "MysqlWrapper::reconnect: очищаем старые соединения...";
-    for (auto conn : _connections) {
+    _generation.fetch_add(1, std::memory_order_release);
+    for (const auto &pooled : _connections) {
+        auto conn = pooled.connection;
         try {
-            if (!conn->isClosed())
+            if (!conn->isClosed()) {
                 conn->close();
+            }
         } catch (...) {
         }
         delete conn;
     }
     _connections.clear();
     connect(_host, _user, _password);
+    lock.unlock();
     if (!_schema.empty())
         set_schema(_schema);
     // Разбудим ожидающие потоки, если появились новые соединения
@@ -126,8 +130,8 @@ void MysqlWrapper::set_schema(const std::string& schema) {
     try {
         query("CREATE SCHEMA IF NOT EXISTS " + schema);
         _schema = schema;
-        for (auto &connection : _connections)
-            connection->setSchema(schema);
+        for (auto &pooled : _connections)
+            pooled.connection->setSchema(schema);
     } catch (const sql::SQLException &e) {
         log_error << "SQLException: " << e.what();
         log_error << "Connect to schema: " << schema;
@@ -231,61 +235,84 @@ void MysqlWrapper::create_index(const std::string& schema,
 }
 
 bool MysqlWrapper::query(const std::string& query) {
-    try {
-        auto conn = get_connection();
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        stmt->execute(query);
-        return true;
-    } catch (const sql::SQLException &e) {
-        log_error << "SQLException: " << e.what() << "\nQuery: " << query;
-        if (e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerLost) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::TimedOut)) {
-            reconnect();
-            this->query(query);
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        try {
+            auto conn = get_connection();
+            std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+            stmt->execute(query);
+            return true;
+        } catch (const sql::SQLException &e) {
+            log_error << "SQLException: " << e.what() << "\nQuery: " << query;
+            if (attempt == 0 && should_retry(e)) {
+                reconnect();
+                continue;
+            }
+            return false;
         }
-        return false;
     }
+    return false;
 }
 std::unique_ptr<sql::ResultSet>
 MysqlWrapper::query_get(const std::string& query) {
-    try {
-        auto conn = get_connection();
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
-        return res;
-    } catch (const sql::SQLException &e) {
-        log_error << "SQLException: " << e.what();
-        log_error << "Query: " << query;
-        if (e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerLost) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::ServerGone) ||
-            e.getErrorCode() == static_cast<int>(MySqlErrorCode::TimedOut)) {
-            reconnect();
-            return this->query_get(query);
+    for (int attempt = 0; attempt < 2; ++attempt) {
+        try {
+            auto conn = get_connection();
+            std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
+            return res;
+        } catch (const sql::SQLException &e) {
+            log_error << "SQLException: " << e.what();
+            log_error << "Query: " << query;
+            if (attempt == 0 && should_retry(e)) {
+                reconnect();
+                continue;
+            }
+            return nullptr;
         }
-        return nullptr;
     }
+    return nullptr;
 }
 
 std::shared_ptr<sql::Connection> MysqlWrapper::get_connection() {
     std::unique_lock<std::mutex> lock(_mutex);
-    // Ждем с таймаутом, чтобы не блокировать поток навсегда
-    if (!_condition.wait_for(lock, std::chrono::seconds(5),
-                             [this]() { return !_connections.empty(); })) {
+    if (!_condition.wait_for(lock, std::chrono::seconds(5), [this]() { return !_connections.empty(); })) {
         throw sql::SQLException("Timeout waiting for MySQL connection", "", static_cast<int>(MySqlErrorCode::TimedOut));
     }
-    sql::Connection *conn = _connections.back();
+    auto pooled = _connections.back();
     _connections.pop_back();
-    return std::shared_ptr<sql::Connection>(
-        conn,
-        [this](sql::Connection *conn) { this->release_connection(conn); });
+    return std::shared_ptr<sql::Connection>(pooled.connection, [this, generation = pooled.generation](sql::Connection *conn) {
+        this->release_connection(conn, generation);
+    });
 }
 
-void MysqlWrapper::release_connection(sql::Connection *conn) {
+void MysqlWrapper::release_connection(sql::Connection *conn, uint64_t generation) {
+    if (!conn) {
+        return;
+    }
     std::unique_lock<std::mutex> lock(_mutex);
-    _connections.push_back(conn);
+    auto current_generation = _generation.load(std::memory_order_acquire);
+    if (generation != current_generation) {
+        lock.unlock();
+        try {
+            if (!conn->isClosed()) {
+                conn->close();
+            }
+        } catch (...) {
+        }
+        delete conn;
+        return;
+    }
+    _connections.push_back({conn, generation});
     lock.unlock();
     _condition.notify_one();
+}
+
+bool MysqlWrapper::should_retry(const sql::SQLException& e) const {
+    auto code = e.getErrorCode();
+    return code == static_cast<int>(MySqlErrorCode::ServerLost) ||
+           code == static_cast<int>(MySqlErrorCode::ServerGone) ||
+           code == static_cast<int>(MySqlErrorCode::TimedOut) ||
+           code == static_cast<int>(MySqlErrorCode::InactivityTimeout);
 }
 
 #endif
