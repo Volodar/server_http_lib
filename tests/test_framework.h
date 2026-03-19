@@ -30,6 +30,26 @@ struct AssertFailure : public std::runtime_error {
     using std::runtime_error::runtime_error;
 };
 
+inline int run_tests() {
+    int failed = 0;
+    int passed = 0;
+    for (const auto& tc : tinytest::registry()) {
+        try {
+            tc.fn();
+            ++passed;
+            std::cout << "[ OK ] " << tc.name << "\n";
+        } catch (const std::exception& e) {
+            ++failed;
+            std::cerr << "[FAIL] " << tc.name << ": " << e.what() << "\n";
+        } catch (...) {
+            ++failed;
+            std::cerr << "[FAIL] " << tc.name << ": unknown error\n";
+        }
+    }
+    std::cout << "Passed: " << passed << ", Failed: " << failed << "\n";
+    return failed == 0 ? 0 : 1;
+}
+
 } // namespace tinytest
 
 #define TEST(name) \
