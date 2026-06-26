@@ -17,7 +17,7 @@ const std::string USER_AGENT("User-Agent");
 Request::Request(){
 }
 
-std::string_view Request::get_post_data_param(const std::string& name) const {
+std::string_view Request::get_post_data_param(std::string_view name) const {
     return get_post_data_params().get(name);
 }
 
