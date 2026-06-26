@@ -3,6 +3,6 @@
 #include <iostream>
 
 int main() {
-    return run_tests();
+    return tinytest::run_tests();
 }
 

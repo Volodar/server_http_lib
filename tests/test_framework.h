@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
+#include "jsoncpp/json.h"
 
 namespace tinytest {
 
@@ -79,3 +80,16 @@ inline int run_tests() {
 #define ASSERT_NE(a,b) do { if(!((a)!=(b))) { \
   std::ostringstream _oss; _oss << "ASSERT_NE failed: " << #a << " != " << #b <<"("<<(a)<<"=="<<(b)<< ") | L: " << __LINE__; \
   throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
+
+
+inline bool __assert_json_equals(std::string_view a, std::string_view b){
+    Json::Reader reader;
+    Json::Value json_a, json_b;
+    reader.parse(a.begin(), a.end(), json_a);
+    reader.parse(b.begin(), b.end(), json_b);
+    return json_a == json_b;
+}
+
+#define ASSERT_JSON_EQ(a, b) do { if(!__assert_json_equals((a), (b))) { \
+std::ostringstream _oss; _oss << "ASSERT_JSON_EQ failed:\n    > Expect: " << #a << " == " << #b <<"\n    > Actual: "<<(a)<<" != "<<(b)<< "\n    > Line: " << __LINE__; \
+throw ::tinytest::AssertFailure(_oss.str()); } } while(0)
