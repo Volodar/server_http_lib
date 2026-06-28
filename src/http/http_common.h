@@ -80,6 +80,7 @@ class Response {
     int get_code() const { return code; }
     std::string& get_body() { return body; }
     const std::vector<std::pair<std::string, std::string>>& get_headers() const { return _headers; }
+    const std::string get_header(std::string_view name);
     
     std::string get_http_header(bool keep_alive, size_t _keep_alive_timeout) const;
 public:

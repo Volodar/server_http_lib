@@ -128,6 +128,13 @@ void Response::add_header(const std::string& name, const std::string& value) {
 void Response::add_header_content_type(const std::string& type) {
     add_header(CONTENT_TYPE, type);
 }
+const std::string Response::get_header(std::string_view name){
+    for(auto header : _headers){
+        if(header.first == name)
+            return header.second;
+    }
+    return std::string();
+}
 
 std::string Response::get_http_header(bool keep_alive, size_t keep_alive_timeout) const {
     std::string header;
@@ -315,6 +322,22 @@ ParsedHeader parse_response_header(Response& response, const std::string& raw) {
         if (line_end == std::string::npos || line_end > headers_len) break;
         std::size_t len = line_end - line_start;
         const char* ls = raw.data() + line_start;
+        if (len == 0) {
+            break;
+        }
+
+        std::size_t colon = line_start;
+        while (colon < line_end && raw[colon] != ':') {
+            ++colon;
+        }
+        if (colon < line_end) {
+            std::string name = raw.substr(line_start, colon - line_start);
+            std::size_t value_start = colon + 1;
+            while (value_start < line_end && (raw[value_start] == ' ' || raw[value_start] == '\t')) {
+                ++value_start;
+            }
+            response.add_header(name, raw.substr(value_start, line_end - value_start));
+        }
 
         // Content-Length:
         if (out.content_length == 0 && len >= 15 && ieq_prefix(ls, len, "content-length:")) {
