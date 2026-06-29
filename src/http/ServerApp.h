@@ -37,6 +37,7 @@ using Headers = std::vector<CheckApiParam>;
 
 class ServerApp {
   public:
+    ServerApp();
     ServerApp(int http_port);
     ServerApp(int http_port, int https_port, asio::ssl::context *ssl_ctx);
     void connect_mysql();

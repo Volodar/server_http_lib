@@ -10,6 +10,15 @@
 
 namespace http {
 
+ServerApp::ServerApp()
+    : _context()
+#if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
+    , _mysql(std::make_shared<MysqlWrapper>())
+#endif
+      ,
+      _http_server(nullptr),
+      _scheduler(std::make_shared<Scheduler>(_context)) {}
+
 ServerApp::ServerApp(int http_port)
     : _context()
 #if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
