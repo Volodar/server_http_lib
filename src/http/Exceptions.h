@@ -30,4 +30,9 @@ private:
     std::string _body;
 };
 
+class ClientError : public ResponseException{
+public:
+    using ResponseException::ResponseException;
+};
+
 #endif /* Exceptions_hpp */
