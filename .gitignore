@@ -5,3 +5,4 @@ tests/build*
 examples/*/build*
 AGENTS.md
 tests/assets/integration_test.txt
+.DS_Store
