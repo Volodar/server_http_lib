@@ -18,7 +18,11 @@ void SslSession<SocketType>::process_request(std::string&& header_,
     Response response = Response404;
     std::string statusText = "OK";
     auto it = _endpoints->find(key);
-    log_debug << methodToStr(request.get_method()) << ": " << request.get_path() << "?" << request.get_params().to_string();
+    log_debug
+        << "[" + request.get_user_ip() << "] "
+        << methodToStr(request.get_method()) << ": " << request.get_path() << "?" << request.get_params().to_string()
+        << " " << request.get_user_agent();
+    
     if (it != _endpoints->end()) {
         try {
             auto sequire = it->second.second;

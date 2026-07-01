@@ -67,7 +67,7 @@ void Server::add_handler(http::Method http_method, Handler handler) {
     _handlers[http_method] = handler;
 }
 
-void Server::run(int count_threads) {
+int Server::run(int count_threads) {
     try {
         if (count_threads == -1)
             count_threads = std::thread::hardware_concurrency();
@@ -81,11 +81,19 @@ void Server::run(int count_threads) {
         log_info << "Run http server with " << count_threads << " threads.";
 
         for (int i = 0; i < count_threads; ++i) {
-            _threads.emplace_back([this]() { _io_context.run(); });
+            auto worker_id = i + 1;
+            _threads.emplace_back([this, worker_id]() {
+                Log::set_worker_id(worker_id);
+                log_info << "Start http worker.";
+                _io_context.run();
+                log_info << "Stop http worker.";
+                Log::reset_worker_id();
+            });
         }
     } catch (std::exception &e) {
         log_error << "Exception: on run server" << e.what();
     }
+    return count_threads;
 }
 
 void Server::accept_http() {

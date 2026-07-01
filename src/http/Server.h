@@ -32,7 +32,7 @@ class Server {
                       Handler handler, Handler sequire_handler = nullptr);
     void add_handler(http::Method http_method, Handler handler);
 
-    void run(int count_threads = -1);
+    int run(int count_threads = -1);
 
   private:
     void accept_http();

@@ -32,6 +32,9 @@ public:
     static void set_level(Level level);
     static Level level_from_str(std::string_view str);
     static Level get_level();
+    static void set_worker_id(int worker_id);
+    static void reset_worker_id();
+    static int get_worker_id();
     Log& operator << (const std::string& message);
     Log& operator << (const std::string_view& message);
     Log& operator << (const char* message);

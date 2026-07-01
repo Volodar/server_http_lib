@@ -66,8 +66,10 @@ void ServerApp::connect_mysql() {
 }
 
 void ServerApp::run(int num_threads) {
-    _http_server->run(num_threads);
+    auto worker_count = _http_server->run(num_threads);
+    Log::set_worker_id(worker_count + 1);
     _context.run();
+    Log::reset_worker_id();
 }
 
 void ServerApp::set_lru_cache(size_t capacity_mb){

@@ -31,6 +31,7 @@ std::string get_stack_trace() {
 }
 
 static std::atomic<Log::Level> global_level = Log::Level::info;
+static thread_local int worker_id = 0;
 
 void Log::set_level(Level level){
     global_level = level;
@@ -46,21 +47,39 @@ Log::Level Log::get_level(){
     return global_level;
 }
 
+void Log::set_worker_id(int id){
+    worker_id = id;
+}
+
+void Log::reset_worker_id(){
+    worker_id = 0;
+}
+
+int Log::get_worker_id(){
+    return worker_id;
+}
+
+std::mutex _out_mutex;
+
 Log::Log(Level level): _level(level){
 }
 Log::~Log(){
     if(_level <= get_level()){
         auto now = time(nullptr);
         std::string kind;
-        if(_level == Level::info)           kind =  "[INFO]:    ";
-        else if(_level == Level::warning)   kind =  "[WARNING]: ";
-        else if(_level == Level::error)     kind =  "[ERROR]:   ";
-        else if(_level == Level::debug)     kind =  "[DEBUG]:   ";
+        if(_level == Level::info)           kind =  "[INFO]: ";
+        else if(_level == Level::warning)   kind =  "[WARN]: ";
+        else if(_level == Level::error)     kind =  "[ERRR]: ";
+        else if(_level == Level::debug)     kind =  "[DEBG]: ";
         
+        auto id = get_worker_id();
+        auto worker = id > 0 ? std::string("[WORKER:") + (id < 10 ? " " : "" ) + std::to_string(id) + "] " : "[  SERVER:] ";
+        
+        std::lock_guard<std::mutex> lock(_out_mutex);
         if(_level == Level::info)
-            std::cout << "[" << timestamp_to_datetime(now) << "] " << kind <<_buffer << std::endl;
+            std::cout << "[" << timestamp_to_datetime(now) << "] " << worker << kind <<_buffer << std::endl;
         else
-            std::cerr << "[" << timestamp_to_datetime(now) << "] " << kind <<_buffer << std::endl;
+            std::cerr << "[" << timestamp_to_datetime(now) << "] " << worker << kind <<_buffer << std::endl;
     }
 }
 
