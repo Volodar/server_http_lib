@@ -25,6 +25,17 @@ std::string_view RequestIncoming::get(std::string_view name, bool require) const
     return iter != _params.end() ? iter->second : empty;
 }
 
+std::string_view RequestIncoming::get_post(std::string_view name, bool require) const {
+    static std::string empty;
+    parse_post_data_params();
+    auto iter = _post_data_params.find(name);
+    if(iter == _post_data_params.end() && require){
+        throw ResponseException(400, "Post parameter " + std::string(name) + " is missing.");
+    }
+    return iter != _post_data_params.end() ? iter->second : empty;
+    
+}
+
 void RequestIncoming::parse_header() {
     std::string_view hdr = _header;
     

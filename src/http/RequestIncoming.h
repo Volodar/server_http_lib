@@ -20,6 +20,7 @@ public:
     const std::string& get_user_ip() const { return _user_ip; }
     
     std::string_view get(std::string_view name, bool require) const;
+    std::string_view get_post(std::string_view name, bool require) const;
 protected:
     virtual void parse_header() override;
     virtual void parse_headers() const override;
