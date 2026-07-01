@@ -77,11 +77,7 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             if(k != std::string::npos)
                 sv_body = sv_header.substr(k + 1);
         }
-        size_t n = sv_body.find('\n');
-        if(n == std::string::npos)
-            n = 160;
-        n = std::min<size_t>(sv_body.size(), n);
-        log_debug << "    -> " << response.code << ((response.code == 300 || response.code == 302) ? ", first header: " : ": ") << sv_body.substr(0, n);
+        log_debug << "    -> " << response.code << ((response.code == 300 || response.code == 302) ? ", first header: " : ": ") << sv_body;
     }
     do_write();
 }
