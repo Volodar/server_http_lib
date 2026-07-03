@@ -11,6 +11,9 @@ using asio::ip::tcp;
 
 namespace {
 
+int processed_fake_requests = 0;
+std::string last_fake_request_body;
+
 // Minimal fake socket to exercise do_read error path without networking
 struct FakeSocket {
     // Share io_context so the socket is copy/move friendly
@@ -56,6 +59,21 @@ struct FakeSocket {
     void close(std::error_code &) {}
 };
 
+class FixedMessageCategory : public std::error_category {
+  public:
+    explicit FixedMessageCategory(const char *message)
+    : _message(message) {
+    }
+    const char *name() const noexcept override {
+        return "fixed";
+    }
+    std::string message(int) const override {
+        return _message;
+    }
+  private:
+    const char *_message;
+};
+
 // Helper to build a fresh SslSession with tcp::socket
 static std::shared_ptr<http::SslSession<tcp::socket>>
 make_tcp_session(asio::io_context &io, const http::EndpointMap &endpoints,
@@ -76,12 +94,32 @@ TEST(SslSession_ci_starts_with_CaseInsensitivity_And_Bounds) {
     ASSERT_FALSE(Sess::ci_starts_with("X-Content-Length:", 17, "Content-Length:"));
 }
 
+TEST(SslSession_is_regular_disconnect_error_ClassifiesExpectedNetworkClosures) {
+    ASSERT_TRUE(http::is_regular_disconnect_error(asio::error::eof));
+    ASSERT_TRUE(http::is_regular_disconnect_error(asio::error::connection_reset));
+#if defined(ASIO_HAS_SSL)
+    ASSERT_TRUE(http::is_regular_disconnect_error(asio::ssl::error::stream_truncated));
+#endif
+}
+
+TEST(SslSession_is_noisy_ssl_handshake_error_ClassifiesScanners) {
+    FixedMessageCategory http_request_category("http request (SSL routines, ssl3_get_record)");
+    FixedMessageCategory unsupported_protocol_category("unsupported protocol (SSL routines, tls_early_post_process_client_hello)");
+    FixedMessageCategory no_shared_cipher_category("no shared cipher (SSL routines, tls_post_process_client_hello)");
+    FixedMessageCategory other_category("certificate verify failed");
+    ASSERT_TRUE(http::is_noisy_ssl_handshake_error(std::error_code(1, http_request_category)));
+    ASSERT_TRUE(http::is_noisy_ssl_handshake_error(std::error_code(1, unsupported_protocol_category)));
+    ASSERT_TRUE(http::is_noisy_ssl_handshake_error(std::error_code(1, no_shared_cipher_category)));
+    ASSERT_FALSE(http::is_noisy_ssl_handshake_error(std::error_code(1, other_category)));
+}
+
 // Provide template specializations for FakeSocket to satisfy references from
 // header-defined methods (try_parse_and_handle/do_read) in this TU.
 namespace http {
 template <>
-void SslSession<FakeSocket>::process_request(std::string&& , std::string&& ) {
-    // no-op for FakeSocket path; not used in assertions in this file
+void SslSession<FakeSocket>::process_request(std::string&& , std::string&& body) {
+    ++processed_fake_requests;
+    last_fake_request_body = std::move(body);
 }
 template <>
 void SslSession<FakeSocket>::do_write() {
@@ -158,6 +196,23 @@ TEST(SslSession_try_parse_and_handle_Expect100Continue_EarlyResponds) {
     ASSERT_TRUE(s->try_parse_and_handle());
     ASSERT_TRUE(s->_have_headers);
     ASSERT_EQ(s->_content_length, 4u);
+}
+
+TEST(SslSession_try_parse_and_handle_Expect100Continue_ProcessesBufferedBody) {
+    http::EndpointMap endpoints;
+    std::map<http::Method, http::Handler> handlers;
+    auto s = std::make_shared<http::SslSession<FakeSocket>>(FakeSocket{}, &endpoints, &handlers);
+    processed_fake_requests = 0;
+    last_fake_request_body.clear();
+
+    std::string request = "POST /upload HTTP/1.1\r\nHost: x\r\nExpect: 100-Continue\r\nContent-Length: 4\r\n\r\nbody";
+    s->_buf.assign(request.begin(), request.end());
+    s->_used = s->_buf.size();
+
+    ASSERT_TRUE(s->try_parse_and_handle());
+    ASSERT_EQ(processed_fake_requests, 1);
+    ASSERT_EQ(last_fake_request_body, std::string("body"));
+    ASSERT_EQ(s->_used, 0u);
 }
 
 TEST(SslSession_process_request_Routes_KeepAlive_And_Fallbacks) {

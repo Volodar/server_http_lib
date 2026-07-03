@@ -21,9 +21,10 @@ void SslSession<
                             [this, self](const std::error_code &ec) {
                                 if (!ec) {
                                     do_read();
+                                } else if (is_noisy_ssl_handshake_error(ec)) {
+                                    log_debug << "SSL handshake rejected: " << ec.message();
                                 } else {
-                                    log_error << "SSL handshake error: "
-                                              << ec.message();
+                                    log_warning << "SSL handshake error: " << ec.message();
                                 }
                             });
 }

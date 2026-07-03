@@ -20,6 +20,28 @@
 
 namespace http {
 
+inline bool is_regular_disconnect_error(const std::error_code &ec) {
+    using asio::error::connection_aborted;
+    using asio::error::connection_reset;
+    using asio::error::eof;
+    using asio::error::not_connected;
+    using asio::error::operation_aborted;
+    if (ec == eof || ec == connection_reset || ec == operation_aborted || ec == not_connected || ec == connection_aborted)
+        return true;
+#if defined(ASIO_HAS_SSL)
+    if (ec == asio::ssl::error::stream_truncated)
+        return true;
+#endif
+    return false;
+}
+
+inline bool is_noisy_ssl_handshake_error(const std::error_code &ec) {
+    if (is_regular_disconnect_error(ec))
+        return true;
+    const std::string message = ec.message();
+    return message.rfind("http request", 0) == 0 || message.rfind("unsupported protocol", 0) == 0 || message.rfind("no shared cipher", 0) == 0;
+}
+
 struct EndpointKey {
     std::string path;
     Method method;
@@ -70,20 +92,8 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
             asio::buffer(_buf.data() + _used, _buf.size() - _used),
             [this, self](std::error_code ec, std::size_t n) {
                 if (ec) {
-                    using asio::error::eof;
-                    using asio::error::connection_reset;
-                    using asio::error::operation_aborted;
-                    using asio::error::not_connected;
-                    using asio::error::connection_aborted;
-#if defined(ASIO_HAS_SSL)
-                    if (ec == asio::ssl::error::stream_truncated)
+                    if (is_regular_disconnect_error(ec))
                         return;
-#endif
-                    if (ec == eof || ec == connection_reset ||
-                        ec == operation_aborted || ec == not_connected ||
-                        ec == connection_aborted) {
-                        return; // normal closure
-                    }
                     log_warning << "Http read error: " << ec.message();
                     return;
                 }
@@ -196,7 +206,15 @@ class SslSession : public std::enable_shared_from_this<SslSession<SocketType>> {
                 static const char interim[] = "HTTP/1.1 100 Continue\r\n\r\n";
                 asio::async_write(
                     _socket, asio::buffer(interim, sizeof(interim) - 1),
-                    [this, self](std::error_code, std::size_t) { do_read(); });
+                    [this, self](std::error_code ec, std::size_t) {
+                        if (ec)
+                            return;
+                        if (_used >= _headers_len + _content_length) {
+                            try_parse_and_handle();
+                            return;
+                        }
+                        do_read();
+                    });
                 return true;
             }
         }
