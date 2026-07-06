@@ -5,7 +5,7 @@
 // annoying process ensures that amalgamate, CMake, and meson all report the
 // correct version.
 // 1. /meson.build
-// 2. /include/json/version.h
+// 2. /include/jsoncpp/version.h
 // 3. /CMakeLists.txt
 // 4. /MODULE.bazel
 // IMPORTANT: also update the SOVERSION!!

@@ -7,7 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
-#include "json/json.h"
+#include "jsoncpp/json.h"
 
 namespace tinytest {
 

@@ -28,14 +28,14 @@ endif()
 set(JSONCPP_INCLUDE_DIR ../../include)
 
 set(PUBLIC_HEADERS
-    ${JSONCPP_INCLUDE_DIR}/json/config.h
-    ${JSONCPP_INCLUDE_DIR}/json/forwards.h
-    ${JSONCPP_INCLUDE_DIR}/json/json_features.h
-    ${JSONCPP_INCLUDE_DIR}/json/value.h
-    ${JSONCPP_INCLUDE_DIR}/json/reader.h
-    ${JSONCPP_INCLUDE_DIR}/json/version.h
-    ${JSONCPP_INCLUDE_DIR}/json/writer.h
-    ${JSONCPP_INCLUDE_DIR}/json/assertions.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/config.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/forwards.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/json_features.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/value.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/reader.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/version.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/writer.h
+    ${JSONCPP_INCLUDE_DIR}/jsoncpp/assertions.h
 )
 
 source_group("Public API" FILES ${PUBLIC_HEADERS})

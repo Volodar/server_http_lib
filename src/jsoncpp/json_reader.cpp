@@ -6,9 +6,9 @@
 
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_tool.h"
-#include <json/assertions.h>
-#include <json/reader.h>
-#include <json/value.h>
+#include <jsoncpp/assertions.h>
+#include <jsoncpp/reader.h>
+#include <jsoncpp/value.h>
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <algorithm>
 #include <cassert>
