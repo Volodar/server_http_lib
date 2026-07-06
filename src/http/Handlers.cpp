@@ -106,8 +106,12 @@ Response Handler404::handle(const http::RequestIncoming &request) {
 }
 
 Response HealthHandler::handle(const http::RequestIncoming &) {
+#if SERVER_WEB_HAVE_MYSQLCONNECTOR == 1
     auto res = _app.get_mysql()->query_get("SELECT DATABASE(), 1");
     http::Response r(200, (res && res->next()) ? "{\"status\":\"ok\"}" : "{\"status\":\"sql fail\"}");
+#else
+    http::Response r(200, "{\"status\":\"ok\"}");
+#endif
     r.add_header_content_type(ContentType::Json);
     return r;
 }
