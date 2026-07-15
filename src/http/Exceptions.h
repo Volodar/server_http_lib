@@ -23,6 +23,7 @@ class ResponseException : public std::exception {
 public:
     ResponseException(int code, std::string&& body): _code(code), _body(std::move(body)){
     }
+    const char* what() const noexcept override {return "ResponseException";}
     int get_code() const {return _code;}
     const std::string& get_body() const {return _body;}
 private:
@@ -33,6 +34,7 @@ private:
 class ClientError : public ResponseException{
 public:
     using ResponseException::ResponseException;
+    const char* what() const noexcept override {return "ClientError";}
 };
 
 #endif /* Exceptions_hpp */
