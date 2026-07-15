@@ -3,7 +3,7 @@ if(TARGET jsoncpp::jsoncpp)
 endif()
 
 get_filename_component(_JSON_ROOT "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
-set(_JSON_SRC_DIR "${_JSON_ROOT}/json")
+set(_JSON_SRC_DIR "${_JSON_ROOT}/jsoncpp")
 
 if(NOT EXISTS "${_JSON_SRC_DIR}")
   message(FATAL_ERROR "jsoncpp.cmake: Could not locate ${_JSON_SRC_DIR}")
