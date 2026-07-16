@@ -106,6 +106,11 @@ std::string methodToStr(Method method);
 std::ostream& operator<<(std::ostream& os, Method method);
 
 
+extern const std::string CONTENT_TYPE;
+extern const std::string CONTENT_LENGTH;
+extern const std::string USER_AGENT;
+extern const std::string ACCEPT_LANGUAGE;
+
 } // namespace http
 
 #endif

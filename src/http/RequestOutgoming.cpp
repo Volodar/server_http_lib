@@ -6,11 +6,10 @@
 //
 
 #include "RequestOutgoming.h"
+#include "http_common.h"
 #include <cassert>
 
 namespace http{
-const std::string CONTENT_TYPE("Content-Type");
-const std::string CONTENT_LENGTH("Content-Length");
 
 RequestOutgoming::RequestOutgoming()
 : Request() {

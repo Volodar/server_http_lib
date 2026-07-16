@@ -14,7 +14,11 @@
 
 namespace http {
 const std::string string_empty;
+
 const std::string CONTENT_TYPE("Content-Type");
+const std::string CONTENT_LENGTH("Content-Length");
+const std::string USER_AGENT("User-Agent");
+const std::string ACCEPT_LANGUAGE("Accept-Language");
 
 Response ResponseNone{0, ""};
 Response ResponseOk{200, "Ok"};

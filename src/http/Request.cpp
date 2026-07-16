@@ -6,13 +6,11 @@
 //
 
 #include "Request.h"
+#include "http_common.h"
 #include "utils.h"
 #include <list>
 
 namespace http {
-const std::string CONTENT_TYPE("Content-Type");
-const std::string USER_AGENT("User-Agent");
-
 
 Request::Request(){
 }
@@ -59,7 +57,7 @@ const Params &Request::get_cookie_params() const {
 
 std::vector<std::string_view> Request::get_accept_language() const{
     std::list<std::pair<float, std::string_view>> list;
-    auto lang = get_headers().get("Accept-Language");
+    auto lang = get_headers().get(ACCEPT_LANGUAGE);
     auto variants = sv_split(lang, ',');
     for(auto variant : variants){
         auto parts = sv_split(variant, ';');
