@@ -31,6 +31,7 @@ class Params {
     bool empty() const;
     size_t size() const;
     std::string to_string(char delimiter='&') const;
+    std::string to_url_encoded() const;
 
     std::unordered_map<std::string_view, std::string_view>::iterator
     begin() noexcept {

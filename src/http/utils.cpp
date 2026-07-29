@@ -171,7 +171,8 @@ std::string url_encode(const std::string_view& input) {
         return HEX[v & 0x0F];
     };
     for (unsigned char c : input) {
-        if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+        const bool is_ascii_alphanumeric = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
+        if (is_ascii_alphanumeric || c == '-' || c == '_' || c == '.' || c == '~') {
             out.push_back(static_cast<char>(c));
         } else if (c == ' ') {
             out.push_back('+');

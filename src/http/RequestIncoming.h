@@ -9,6 +9,7 @@
 #define InRequest_hpp
 
 #include "Request.h"
+#include <unordered_map>
 
 namespace http{
 
@@ -29,7 +30,10 @@ protected:
 private:
     std::string _user_ip;
     std::string _header;
+    std::unordered_map<std::string, std::string> _decoded_params;
+    mutable std::unordered_map<std::string, std::string> _decoded_post_data_params;
     size_t _headers_pos = -1;
+    mutable bool _post_data_params_parsed = false;
 };
 
 }

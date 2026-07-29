@@ -25,6 +25,7 @@ public:
     void set_method(Method method);
     void set_content_type(const std::string& value);
     void set_params(const std::string& name, const std::string& value);
+    void set_post_params(const std::string& name, const std::string& value);
     void add_header(const std::string& name, const std::string& value);
     void set_timeout_ms(int connect, int read);
     
@@ -39,7 +40,7 @@ protected:
 private:
     std::unordered_map<std::string, std::string> _params;
     std::unordered_map<std::string, std::string> _headers;
-    std::unordered_map<std::string, std::string> _post_data_params;
+    std::unordered_map<std::string, std::string> _post_params;
     int _connect_timeout_ms = 0;
     int _read_timeout_ms = 0;
 };

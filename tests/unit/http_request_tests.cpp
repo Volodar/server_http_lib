@@ -1,6 +1,7 @@
 #include "test_framework.h"
 #include "http/Server.h"
 #include "http/RequestIncoming.h"
+#include "http/RequestOutgoming.h"
 #include <string>
 
 TEST(HttpRequest_Parse_And_Params) {
@@ -26,6 +27,42 @@ TEST(HttpRequest_Parse_And_Params) {
 
     ASSERT_EQ(req.get_cookie_value("id"), std::string("42"));
     ASSERT_EQ(req.get_cookie_value("token"), std::string("abc"));
+}
+
+TEST(HttpRequest_Decodes_Query_And_Post_Params) {
+    const std::string expected = "Device name +%&=?# / Привет";
+    std::string header = "POST /api/submit?device+id=Device+name+%2B%25%26%3D%3F%23+%2F+%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82 HTTP/1.1\r\n\r\n";
+    http::RequestIncoming request(std::move(header));
+    request.set_data("device+name=Device+name+%2B%25%26%3D%3F%23+%2F+%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82");
+
+    ASSERT_EQ(request.get("device id", true), expected);
+    ASSERT_EQ(request.get_post("device name", true), expected);
+}
+
+TEST(HttpRequestOutgoing_Encodes_Query_And_Post_Params) {
+    http::RequestOutgoming request;
+    request.set_method(http::Method::post);
+    request.set_path("/save_data");
+    request.set_params("device id", "Device +%&=?# / Привет");
+    request.set_post_params("device name", "Device +%&=?# / Привет");
+
+    auto body = request.get_http_body("localhost");
+    ASSERT_TRUE(body.find("/save_data?device+id=Device+%2B%25%26%3D%3F%23+%2F+%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82 HTTP/1.1") != std::string::npos);
+    ASSERT_TRUE(body.find("Content-Type: application/x-www-form-urlencoded") != std::string::npos);
+    ASSERT_TRUE(body.ends_with("device+name=Device+%2B%25%26%3D%3F%23+%2F+%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82"));
+}
+
+TEST(HttpRequestOutgoing_Preserves_Binary_Body) {
+    http::RequestOutgoming request;
+    request.set_method(http::Method::post);
+    request.set_path("/save_data");
+    request.set_params("device_name", "Device name");
+    request.set_data(std::string("abc\0def", 7));
+
+    auto body = request.get_http_body("localhost");
+    ASSERT_TRUE(body.find("/save_data?device_name=Device+name HTTP/1.1") != std::string::npos);
+    ASSERT_TRUE(body.find("Content-Length: 7") != std::string::npos);
+    ASSERT_EQ(body.substr(body.size() - 7), std::string("abc\0def", 7));
 }
 
 TEST(HttpMethod_Conversions) {
@@ -70,4 +107,3 @@ TEST(HttpRequestSendGetAndPost) {
         throw;
     }
 }
-

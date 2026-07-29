@@ -29,6 +29,10 @@ void RequestOutgoming::set_params(const std::string& name, const std::string& va
     auto iter = _params.insert({name, value});
     Request::_params.set(iter.first->first, iter.first->second);
 }
+void RequestOutgoming::set_post_params(const std::string& name, const std::string& value){
+    auto iter = _post_params.insert_or_assign(name, value).first;
+    Request::_post_data_params.set(iter->first, iter->second);
+}
 void RequestOutgoming::add_header(const std::string& name, const std::string& value){
     auto iter = _headers.insert({name, value});
     Request::_headers.set(iter.first->first, iter.first->second);
@@ -44,13 +48,16 @@ void RequestOutgoming::parse_cookie_params() const{
 }
 
 std::string RequestOutgoming::get_http_body(const std::string& host) const{
-    const bool has_body = !_post_data.empty();
+    const bool has_post_params = !_post_params.empty();
+    const std::string post_data = has_post_params ? get_post_data_params().to_url_encoded() : _post_data;
+    const bool has_body = !post_data.empty();
     if (has_body) {
         auto non_const = const_cast<RequestOutgoming*>(this);
-        if(!Request::_headers.has(CONTENT_TYPE))
-            non_const->add_header(CONTENT_TYPE, std::string(get_content_type()));
+        if(!Request::_headers.has(CONTENT_TYPE)) {
+            non_const->add_header(CONTENT_TYPE, has_post_params ? "application/x-www-form-urlencoded" : std::string(get_content_type()));
+        }
         if(!Request::_headers.has(CONTENT_LENGTH))
-            non_const->add_header(CONTENT_LENGTH, std::to_string(_post_data.size()));
+            non_const->add_header(CONTENT_LENGTH, std::to_string(post_data.size()));
     }
     
     std::string headers;
@@ -61,7 +68,7 @@ std::string RequestOutgoming::get_http_body(const std::string& host) const{
         headers += h.second;
         headers += "\r\n";
     }
-    auto params = get_params().to_string();
+    auto params = get_params().to_url_encoded();
     std::string result;
     
     static const std::string empty;
@@ -74,7 +81,7 @@ std::string RequestOutgoming::get_http_body(const std::string& host) const{
                         1 + params.size() + //get params
                         headers.size() + // headers
                         host.size() + // host
-                        _post_data.size();
+                        post_data.size();
     result.reserve(buffer_size);
     
     result += std::move(method);
@@ -90,7 +97,7 @@ std::string RequestOutgoming::get_http_body(const std::string& host) const{
     result += std::move(headers);
     result += "Connection: close\r\n\r\n";
     if (has_body)
-        result += _post_data;
+        result += post_data;
     
     return result;
 }

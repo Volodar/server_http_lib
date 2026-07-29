@@ -69,6 +69,21 @@ std::string Params::to_string(char delimiter) const {
     return res;
 }
 
+std::string Params::to_url_encoded() const {
+    std::string result;
+    result.reserve(_len * 3 + _params.size());
+    size_t index = _params.size();
+    for(const auto& [name, value] : _params) {
+        result += url_encode(name);
+        result += '=';
+        result += url_encode(value);
+        if(--index > 0) {
+            result += '&';
+        }
+    }
+    return result;
+}
+
 static inline char ascii_lower(char c) {
     return (c >= 'A' && c <= 'Z') ? static_cast<char>(c | 0x20) : c;
 }

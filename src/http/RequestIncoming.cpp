@@ -73,13 +73,12 @@ void RequestIncoming::parse_header() {
                 if (token.empty())
                     continue;
                 auto eq = token.find('=');
-                if (eq == std::string_view::npos) {
-                    _params.set(token, std::string_view{});
-                } else {
-                    auto k = token.substr(0, eq);
-                    auto v = token.substr(eq + 1);
-                    _params.set(k, v);
-                }
+                auto key = url_decode(token.substr(0, eq));
+                auto value = eq == std::string_view::npos ? std::string() : url_decode(token.substr(eq + 1));
+                _decoded_params.insert_or_assign(std::move(key), std::move(value));
+            }
+            for(const auto& [key, value] : _decoded_params) {
+                _params.set(key, value);
             }
         }
     }
@@ -116,6 +115,10 @@ void RequestIncoming::parse_headers() const {
 }
 
 void RequestIncoming::parse_post_data_params() const {
+    if(_post_data_params_parsed) {
+        return;
+    }
+    _post_data_params_parsed = true;
     std::string_view data = _post_data;
     while (!data.empty()) {
         auto amp = data.find('&');
@@ -130,13 +133,12 @@ void RequestIncoming::parse_post_data_params() const {
             continue;
         
         auto eq = token.find('=');
-        if (eq == std::string_view::npos) {
-            _post_data_params.set(token, std::string_view{});
-        } else {
-            auto k = token.substr(0, eq);
-            auto v = token.substr(eq + 1);
-            _post_data_params.set(k, v);
-        }
+        auto key = url_decode(token.substr(0, eq));
+        auto value = eq == std::string_view::npos ? std::string() : url_decode(token.substr(eq + 1));
+        _decoded_post_data_params.insert_or_assign(std::move(key), std::move(value));
+    }
+    for(const auto& [key, value] : _decoded_post_data_params) {
+        _post_data_params.set(key, value);
     }
 }
 
