@@ -166,8 +166,6 @@ void MysqlWrapper::alter_table_add_column(const std::string& schema,
                                           const std::string& table,
                                           const std::string& column,
                                           const std::string& column_type) {
-    assert(column_type.find("DEFAULT") != std::string::npos);
-
     bool tableExist = has_table(schema, table);
     if (!tableExist)
         throw sql::SQLException("table " + schema + "." + table +
@@ -184,7 +182,9 @@ void MysqlWrapper::alter_table_add_column(const std::string& schema,
     }
     auto source = build_query("ALTER TABLE $0.$1 ADD COLUMN $2 $3;", schema, table, column, column_type);
     http::replace(source, "\\\"", "\"");
-    this->query(source);
+    if(!this->query(source)) {
+        throw sql::SQLException("Cannot add column " + column + " to table " + schema + "." + table);
+    }
 }
 
 void MysqlWrapper::alter_table_change_column(const std::string& schema,
@@ -211,27 +211,37 @@ void MysqlWrapper::alter_table_change_column(const std::string& schema,
     this->query(source);
 }
 
+bool MysqlWrapper::has_index(const std::string& schema, const std::string& table, const std::string& index) {
+    if(!has_table(schema, table)) {
+        return false;
+    }
+    auto result = query_get(build_query("SHOW INDEX FROM `$1` FROM `$0`", schema, table));
+    while(result->next()) {
+        if(result->getString(3) == index) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void MysqlWrapper::create_index(const std::string& schema,
                                 const std::string& table,
                                 const std::string& index,
                                 const std::string& source) {
-    bool tableExist = has_table(schema, table);
-    if (!tableExist)
-        throw sql::SQLException(
-            "table " + schema + "." + table +
-            "not exist. Cannot create index with query: " + source);
-    auto query = build_query("SHOW INDEX FROM `$1` FROM `$0`", schema, table);
-    auto result = query_get(query);
-    while (result->next()) {
-        auto s = result->getString(5);
-        if (s == index)
-            return;
+    if(!has_table(schema, table)) {
+        throw sql::SQLException("table " + schema + "." + table + " not exist. Cannot create index with query: " + source);
+    }
+    if(has_index(schema, table, index)) {
+        return;
     }
 
-    query = source;
-    if (query.empty())
+    auto query = source;
+    if(query.empty()) {
         query = build_query("CREATE INDEX idx_$2 ON $0.$1 ($2);", schema, table, index);
-    this->query(query);
+    }
+    if(!this->query(query)) {
+        throw sql::SQLException("Cannot create index " + index + " on table " + schema + "." + table);
+    }
 }
 
 bool MysqlWrapper::query(const std::string& query) {

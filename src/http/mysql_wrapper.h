@@ -43,6 +43,7 @@ class MysqlWrapper {
                                    const std::string& table,
                                    const std::string& column,
                                    const std::string& column_type);
+    bool has_index(const std::string& schema, const std::string& table, const std::string& index);
     void create_index(const std::string& schema, const std::string& table,
                       const std::string& index, const std::string& source = "");
 
