@@ -37,6 +37,10 @@ void RequestOutgoming::add_header(const std::string& name, const std::string& va
     auto iter = _headers.insert({name, value});
     Request::_headers.set(iter.first->first, iter.first->second);
 }
+void RequestOutgoming::set_timeout_ms(int connect, int read) {
+    _connect_timeout_ms = connect;
+    _read_timeout_ms = read;
+}
 
 void RequestOutgoming::parse_header(){
 }

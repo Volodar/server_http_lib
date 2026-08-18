@@ -4,6 +4,10 @@
 #include <cstring>
 #include <list>
 #include <charconv>
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/provider.h>
+#endif
 #include "asio.hpp"
 #include "asio/ssl.hpp"
 #include "utils.h"
@@ -13,6 +17,20 @@
 #include "http_common.h"
 
 namespace http {
+
+namespace {
+
+void ensure_default_openssl_provider() {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+    static OSSL_PROVIDER* default_provider = OSSL_PROVIDER_load(nullptr, "default");
+    if(!default_provider) {
+        throw std::runtime_error("cannot load OpenSSL default provider");
+    }
+#endif
+}
+
+}
+
 const std::string string_empty;
 
 const std::string CONTENT_TYPE("Content-Type");
@@ -529,11 +547,17 @@ Response request(const Url &url, RequestOutgoming &request) {
             auto ph = parse_response_header(result, header_raw);
             read_response_body(result, ph.content_length, ph.chunked, ph.leftover, socket, buf);
         } else {
+            ensure_default_openssl_provider();
             asio::ssl::context ctx(asio::ssl::context::tlsv12_client);
+            ctx.set_default_verify_paths();
             asio::ssl::stream<asio::ip::tcp::socket> socket(io_service, ctx);
-            socket.set_verify_mode(asio::ssl::verify_none);
+            socket.set_verify_mode(asio::ssl::verify_peer);
+            socket.set_verify_callback(asio::ssl::host_name_verification(host));
+            if(SSL_set_tlsext_host_name(socket.native_handle(), host.c_str()) != 1) {
+                throw std::runtime_error("cannot set TLS server name");
+            }
             asio::connect(socket.lowest_layer(), endpoints);
-            // apply_timeouts(socket, request.get_timeout_connect_ms(), request.get_timeout_read_ms());
+            apply_timeouts(socket.lowest_layer(), request.get_timeout_connect_ms(), request.get_timeout_read_ms());
             socket.handshake(asio::ssl::stream_base::client);
             asio::write(socket, asio::buffer(req));
 
@@ -544,8 +568,7 @@ Response request(const Url &url, RequestOutgoming &request) {
         }
     } catch (std::exception &e) {
         log_error << "Error: " << e.what() << " URL: " << url.host << ":"
-                  << url.port << url.endpoint << "<<"
-                  << std::string(request.get_data()) << "\n";
+                  << url.port << url.endpoint;
     }
     return result;
 }
