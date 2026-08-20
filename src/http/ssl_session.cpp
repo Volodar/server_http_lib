@@ -10,6 +10,7 @@ namespace http {
 template <typename SocketType>
 void SslSession<SocketType>::process_request(std::string&& header_,
                                              std::string&& body_) {
+    auto start = std::chrono::high_resolution_clock::now();
     RequestIncoming request(std::move(header_));
     request.set_user_ip(_clientIP);
     request.set_data(std::move(body_));
@@ -77,7 +78,9 @@ void SslSession<SocketType>::process_request(std::string&& header_,
             if(k != std::string::npos)
                 sv_body = sv_header.substr(k + 1);
         }
-        log_debug << "    -> " << response.code << ((response.code == 300 || response.code == 302) ? ", first header: " : ": ") << sv_body;
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+        log_debug << "  -> " << response.code << "(" << elapsed.count() << "ms)" << ((response.code == 300 || response.code == 302) ? ", first header: " : ": ") << sv_body;
     }
     do_write();
 }
