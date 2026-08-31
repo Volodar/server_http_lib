@@ -53,7 +53,7 @@ Response FileContent::handle(const http::RequestIncoming &request) {
 bool FileContent::normalize_asset_path(std::string_view input, std::filesystem::path &out_path){
     std::string clean(input);
     int iterations = 3;
-    while(clean.find('%') && iterations-- > 0){
+    while(clean.find('%') != std::string_view::npos && iterations-- > 0){
         clean = url_decode(clean);
     }
     
@@ -84,7 +84,12 @@ bool FileContent::normalize_asset_path(std::string_view input, std::filesystem::
         if(part == "..")
             return false;
     }
-    out_path = std::filesystem::path("assets") / rel;
+    
+    
+    auto assets_root = std::getenv("ASSETS_ROOT");
+    std::filesystem::path assets_path(assets_root ? assets_root : "assets");
+    
+    out_path = assets_path / rel;
     return true;
 }
 
