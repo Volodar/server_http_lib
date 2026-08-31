@@ -122,6 +122,7 @@ Method strToMethod(const std::string& methodStr) {
     if(is_equal_lower(s, size, "put")) return Method::put;
     if(is_equal_lower(s, size, "delete")) return Method::del;
     if(is_equal_lower(s, size, "create")) return Method::create;
+    if(is_equal_lower(s, size, "options")) return Method::options;
     return Method::get;
 }
 std::string methodToStr(Method method) {
@@ -135,6 +136,8 @@ std::string methodToStr(Method method) {
         return "DELETE";
     else if (method == Method::create)
         return "CREATE";
+    else if (method == Method::options)
+        return "OPTIONS";
     else
         return "GET";
 }

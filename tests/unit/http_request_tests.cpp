@@ -70,8 +70,11 @@ TEST(HttpMethod_Conversions) {
     ASSERT_EQ(http::strToMethod("get"), http::Method::get);
     ASSERT_EQ(http::strToMethod("Post"), http::Method::post);
     ASSERT_EQ(http::strToMethod("post"), http::Method::post);
+    ASSERT_EQ(http::strToMethod("OPTIONS"), http::Method::options);
+    ASSERT_EQ(http::strToMethod("options"), http::Method::options);
     ASSERT_EQ(http::methodToStr(http::Method::get), std::string("GET"));
     ASSERT_EQ(http::methodToStr(http::Method::put), std::string("PUT"));
+    ASSERT_EQ(http::methodToStr(http::Method::options), std::string("OPTIONS"));
 }
 
 TEST(HttpRequestSendGetAndPost) {

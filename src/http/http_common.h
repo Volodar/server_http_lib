@@ -18,7 +18,7 @@ class Url {
     bool https = false; // use TLS when true
 };
 
-enum class Method { get, post, put, del, create };
+enum class Method { get, post, put, del, create, options };
 
 class Params {
   public:
