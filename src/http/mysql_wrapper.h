@@ -51,8 +51,10 @@ class MysqlWrapper {
     std::unique_ptr<sql::ResultSet> query_get(const std::string& query);
 
     std::shared_ptr<sql::Connection> get_connection();
+    static bool should_replace_connection(bool is_closed, bool is_valid);
 
   protected:
+    sql::Connection *create_connection();
     void release_connection(sql::Connection *conn, uint64_t generation);
     bool should_retry(const sql::SQLException& e) const;
 

@@ -90,7 +90,7 @@ void MysqlWrapper::connect(const std::string& host, const std::string& login,
         auto generation = _generation.load(std::memory_order_acquire);
         for (int i = 0; i < count; ++i) {
             try {
-                sql::Connection *conn = _driver->connect(host, login, password);
+                sql::Connection *conn = create_connection();
                 _connections.push_back({conn, generation});
             } catch (sql::SQLException &e) {
                 log_error << "Error on connection to mysql: " << e.what();
@@ -286,13 +286,56 @@ MysqlWrapper::query_get(const std::string& query) {
 std::shared_ptr<sql::Connection> MysqlWrapper::get_connection() {
     std::unique_lock<std::mutex> lock(_mutex);
     if (!_condition.wait_for(lock, std::chrono::seconds(5), [this]() { return !_connections.empty(); })) {
-        throw sql::SQLException("Timeout waiting for MySQL connection", "", static_cast<int>(MySqlErrorCode::TimedOut));
+        lock.unlock();
+        auto connection = create_connection();
+        auto generation = _generation.load(std::memory_order_acquire);
+        log_info << "MysqlWrapper::get_connection: empty pool replenished";
+        return std::shared_ptr<sql::Connection>(connection, [this, generation](sql::Connection *conn) {
+            this->release_connection(conn, generation);
+        });
     }
     auto pooled = _connections.back();
     _connections.pop_back();
-    return std::shared_ptr<sql::Connection>(pooled.connection, [this, generation = pooled.generation](sql::Connection *conn) {
+    lock.unlock();
+
+    try {
+        auto is_closed = pooled.connection->isClosed();
+        auto is_valid = !is_closed && pooled.connection->isValid();
+        if (!should_replace_connection(is_closed, is_valid)) {
+            return std::shared_ptr<sql::Connection>(pooled.connection, [this, generation = pooled.generation](sql::Connection *conn) {
+                this->release_connection(conn, generation);
+            });
+        }
+    } catch (const sql::SQLException &e) {
+        log_error << "MysqlWrapper::get_connection: stale connection: " << e.what();
+    }
+
+    try {
+        if (!pooled.connection->isClosed()) {
+            pooled.connection->close();
+        }
+    } catch (...) {
+    }
+    delete pooled.connection;
+
+    auto connection = create_connection();
+    auto generation = _generation.load(std::memory_order_acquire);
+    log_info << "MysqlWrapper::get_connection: stale connection replaced";
+    return std::shared_ptr<sql::Connection>(connection, [this, generation](sql::Connection *conn) {
         this->release_connection(conn, generation);
     });
+}
+
+sql::Connection *MysqlWrapper::create_connection() {
+    auto connection = _driver->connect(_host, _user, _password);
+    if (!_schema.empty()) {
+        connection->setSchema(_schema);
+    }
+    return connection;
+}
+
+bool MysqlWrapper::should_replace_connection(bool is_closed, bool is_valid) {
+    return is_closed || !is_valid;
 }
 
 void MysqlWrapper::release_connection(sql::Connection *conn, uint64_t generation) {

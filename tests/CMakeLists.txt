@@ -28,7 +28,7 @@ include_directories(
 )
 
 # -------- Unit tests --------
-file(GLOB_RECURSE UNIT_SRC
+file(GLOB_RECURSE UNIT_SRC CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_LIST_DIR}/unit/*.cpp
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
   ${CMAKE_CURRENT_LIST_DIR}/test_framework.h
@@ -65,7 +65,7 @@ else()
 endif()
 
 # -------- Integration tests --------
-file(GLOB_RECURSE INTEG_SRC
+file(GLOB_RECURSE INTEG_SRC CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_LIST_DIR}/integration/*.cpp
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
   ${CMAKE_CURRENT_LIST_DIR}/test_framework.h
